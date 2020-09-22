@@ -4,6 +4,9 @@ from pathlib import Path
 resource_path = Path('./sample-images')
 destination_path = Path('./sample-result')
 
+'''
+pixel contains r, g, b, a value in integer
+'''
 def embed_to_image():
     with Image.open(resource_path/"small-shorthair.png") as img:
         width, height = img.size
@@ -11,7 +14,6 @@ def embed_to_image():
             for y in range(0, height):
                 pix = img.getpixel((x,y))
                 pix = list(pix)
-                pix[3] = 100
                 img.putpixel((x,y), tuple(pix))
         img.save(destination_path/"test.png", "PNG")
                 
