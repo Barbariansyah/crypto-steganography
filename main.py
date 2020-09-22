@@ -1,5 +1,9 @@
-from steganography.cipher.vigenere import extended_vigenere_encrypter
+import sys
+from PyQt5.QtWidgets import QApplication
+from gui.app import App
 
 if __name__ == "__main__":
-    res = extended_vigenere_encrypter('plain teks', 'bari')
-    print(format(res[0], '08b'))
+    app = QApplication(sys.argv)
+    main = App()
+    sys.exit(app.exec_())
+    
