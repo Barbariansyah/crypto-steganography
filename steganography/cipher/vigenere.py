@@ -6,7 +6,7 @@ def extended_vigenere_encrypter(plaintext, key):
     ciphertext = []
     key = vigenere_helper.generate_vigenere_standard_key(plaintext, key)
     for i in range(len(plaintext)):
-        encrypted_char = (ord(plaintext[i]) + ord(key[i])) % 256
+        encrypted_char = (plaintext[i] + ord(key[i])) % 256
         ciphertext.append(encrypted_char)
 
     return bytes(ciphertext)
