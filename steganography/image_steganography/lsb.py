@@ -8,6 +8,7 @@ destination_path = Path('././steganography/sample-result')
 '''
 pixel contains r, g, b, a value in integer
 '''
+
 def embed_to_image_lsb():
     pass
 
@@ -16,7 +17,6 @@ def embed_to_image(embedded_file: str, cover_file: str, key: str, method: str, e
     with Image.open(resource_path/cover_file) as img:
         width, height = img.size
         print(calculate_image_capacity(width, height))
-
 
 def extract_from_image():
     with Image.open(resource_path/"small-shorthair.png") as img:
@@ -30,7 +30,3 @@ def extract_from_image():
         #     binary = format(p, '08b')
         #     print(binary)
         #     print(int(binary, 2))
-
-# if __name__ == "__main__":
-#     embed_to_image(input_file="small-shorthair.png", key='steganography', method='lsb', )
-#     # extract_from_image()

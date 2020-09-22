@@ -1,6 +1,6 @@
 ''' Vignere Cipher '''
 
-from ..helper import vigenere_helper
+from steganography.helper import vigenere_helper
 
 def extended_vigenere_encrypter(plaintext, key):
     ciphertext = []
