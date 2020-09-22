@@ -46,7 +46,7 @@ class MainWidget(QWidget):
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.title = 'Stegano Tools'
+        self.title = 'Steganify!'
         self.left = 150
         self.top = 150
         self.width = 640

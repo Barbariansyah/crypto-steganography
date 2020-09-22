@@ -1,6 +1,6 @@
 from PIL import Image
 from pathlib import Path
-from ..util import seed_generator, calculate_image_capacity, get_file_size
+from steganography.util import seed_generator, calculate_image_capacity, get_file_size
 
 resource_path = Path('././')
 destination_path = Path('././steganography/sample-result')
