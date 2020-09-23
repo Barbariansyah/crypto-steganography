@@ -2,14 +2,14 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from os import path
-from gui.common import FILE_TYPE_FILTER, IMAGE_DIM, IMAGE_MIN_DIM
+from gui.common import FILE_TYPE_FILTER, IMAGE_DIM, IMAGE_MIN_DIM, open_file, save_file
 from steganography.image_steganography import lsb
 
 class ImageEncodeWidget(QWidget):
     def __init__(self, parent: QWidget):
         super(ImageEncodeWidget, self).__init__(parent)
-        self.original_image = None
-        self.payloaded_image = None
+        self.cover_image = None
+        self.stego_image = None
 
         # Stegano properties
         self.encrypt = True
@@ -26,18 +26,18 @@ class ImageEncodeWidget(QWidget):
         h_frame_widget = QWidget()
         h_frame_layout = QHBoxLayout()
 
-        h_frame_layout.addWidget(self._init_original_image_ui())
-        h_frame_layout.addWidget(self._init_payloaded_image_ui())
+        h_frame_layout.addWidget(self._init_cover_image_ui())
+        h_frame_layout.addWidget(self._init_stego_image_ui())
         h_frame_layout.setContentsMargins(0,0,0,0)
 
         h_frame_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         h_frame_widget.setLayout(h_frame_layout)
         self.layout.addWidget(h_frame_widget)
 
-        # Add load to be hidden file
-        self.button_load_hidden = QPushButton('Choose file to be hidden', self)
-        self.button_load_hidden.clicked.connect(self._open_hidden_file)
-        self.layout.addWidget(self.button_load_hidden)
+        # Add load embedded file
+        self.button_load_embed = QPushButton('Choose file to be embedded', self)
+        self.button_load_embed.clicked.connect(self._open_embedded_file)
+        self.layout.addWidget(self.button_load_embed)
 
         # Add stegano properties config
         self._init_stegano_properties_ui()
@@ -48,51 +48,51 @@ class ImageEncodeWidget(QWidget):
         self.layout.addWidget(self.button_steganify)
 
         # Add psnr info label
-        self.label_psnr = QLabel('File succesfully hidden with PSNR: ', self)
+        self.label_psnr = QLabel('File succesfully embedded with PSNR: ', self)
         self.label_psnr.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.label_psnr.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(self.label_psnr)
 
         self.setLayout(self.layout)
 
-    def _init_original_image_ui(self):
-        original_image_pane = QWidget()
-        original_image_layout = QVBoxLayout()
-        original_image_layout.setContentsMargins(0,0,0,0)
+    def _init_cover_image_ui(self):
+        cover_image_pane = QWidget()
+        cover_image_layout = QVBoxLayout()
+        cover_image_layout.setContentsMargins(0,0,0,0)
 
-        self.image_l = QLabel(original_image_pane)
+        self.image_l = QLabel(cover_image_pane)
         self.image_l.setFrameStyle(QFrame.Box)
         self.image_l.setMinimumSize(IMAGE_MIN_DIM, IMAGE_MIN_DIM)
         self.image_l.setMaximumSize(IMAGE_DIM, IMAGE_DIM)
         self.image_l.setScaledContents(True)
-        original_image_layout.addWidget(self.image_l)
+        cover_image_layout.addWidget(self.image_l)
 
-        self.button_load_container = QPushButton('Choose container image', self)
-        self.button_load_container.clicked.connect(self._open_container_image)
-        original_image_layout.addWidget(self.button_load_container)
+        self.button_load_cover = QPushButton('Choose cover image', self)
+        self.button_load_cover.clicked.connect(self._open_cover_image)
+        cover_image_layout.addWidget(self.button_load_cover)
 
-        original_image_pane.setLayout(original_image_layout)
-        return original_image_pane
+        cover_image_pane.setLayout(cover_image_layout)
+        return cover_image_pane
 
-    def _init_payloaded_image_ui(self):
-        payloaded_image_pane = QWidget()
-        payloaded_image_layout = QVBoxLayout()
-        payloaded_image_layout.setContentsMargins(0,0,0,0)
+    def _init_stego_image_ui(self):
+        stego_image_pane = QWidget()
+        stego_image_layout = QVBoxLayout()
+        stego_image_layout.setContentsMargins(0,0,0,0)
 
-        self.image_r = QLabel(payloaded_image_pane)
+        self.image_r = QLabel(stego_image_pane)
         self.image_r.setFrameStyle(QFrame.Box)
         self.image_r.setMinimumSize(IMAGE_MIN_DIM, IMAGE_MIN_DIM)
         self.image_r.setMaximumSize(IMAGE_DIM, IMAGE_DIM)
         self.image_r.setScaledContents(True)
-        payloaded_image_layout.addWidget(self.image_r)
+        stego_image_layout.addWidget(self.image_r)
 
-        self.button_save_payloaded = QPushButton('Save payloaded image', self)
-        self.button_save_payloaded.clicked.connect(self._save_payloaded_image)
-        self.button_save_payloaded.setDisabled(True)
-        payloaded_image_layout.addWidget(self.button_save_payloaded)
+        self.button_save_stego = QPushButton('Save stego image', self)
+        self.button_save_stego.clicked.connect(self._save_stego_image)
+        self.button_save_stego.setDisabled(True)
+        stego_image_layout.addWidget(self.button_save_stego)
 
-        payloaded_image_pane.setLayout(payloaded_image_layout)
-        return payloaded_image_pane
+        stego_image_pane.setLayout(stego_image_layout)
+        return stego_image_pane
 
     def _init_stegano_properties_ui(self):
         self.layout.addWidget(self._init_encrypt_radio())
@@ -164,46 +164,33 @@ class ImageEncodeWidget(QWidget):
         sequential_radio_pane.setLayout(sequential_radio_layout)
         return sequential_radio_pane
 
-    def _open_file(self, dialog_title: str, file_filter: str):
-        options = QFileDialog.Options()
-        file_name, _ = QFileDialog.getOpenFileName(self, dialog_title, '', file_filter, options=options)
-        
-        if file_name:
-            return file_name
-
-    def _save_file(self, dialog_title: str, file_filter: str):
-        file_name, _ = QFileDialog.getSaveFileName(self, dialog_title, '', file_filter)
-        
-        if file_name:
-            return file_name
-
-    def _open_container_image(self):
-        full_path = self._open_file('Choose container image', FILE_TYPE_FILTER['Image'])
+    def _open_cover_image(self):
+        full_path = open_file(self, 'Choose cover image', FILE_TYPE_FILTER['Image'])
         if full_path is None:
             return
 
         _, file_name = path.split(full_path)
-        self.original_image = QPixmap(full_path)
+        self.cover_image = QPixmap(full_path)
 
-        self.button_load_container.setText(f'Chosen image: {file_name}')
-        self.image_l.setPixmap(self.original_image)
+        self.button_load_cover.setText(f'Chosen image: {file_name}')
+        self.image_l.setPixmap(self.cover_image)
     
-    def _open_hidden_file(self):
-        full_path = self._open_file('Choose file to be hidden', FILE_TYPE_FILTER['Any'])
+    def _open_embedded_file(self):
+        full_path = open_file(self, 'Choose file to be embedded', FILE_TYPE_FILTER['Any'])
         if full_path is None:
             return
 
         _, file_name = path.split(full_path)
-        self.button_load_container.setText(f'Chosen file: {file_name}')
+        self.button_load_embed.setText(f'Chosen file: {file_name}')
 
-    def _save_payloaded_image(self):
-        full_path = self._save_file('Chose save location', FILE_TYPE_FILTER['Image'])
+    def _save_stego_image(self):
+        full_path = save_file(self, 'Chose save location', FILE_TYPE_FILTER['Image'])
         print(full_path)
 
     def _steganify(self):
         # payloaded_file, psnr = lsb.embed_to_image(...)
-        # self.payloaded_image = QPixmap.loadFromData(payloaded_file)
-        # self.button_save_payloaded.setDisabled(False)
+        # self.stego_image = QPixmap.loadFromData(payloaded_file)
+        # self.button_save_stego.setDisabled(False)
         # self.label_psnr.setText(psnr)
         pass
     
@@ -215,3 +202,61 @@ class ImageEncodeWidget(QWidget):
     
     def _sequential_choice_cb(self, state: QRadioButton):
         self.sequential = True if state.text() == 'Sequential' else False
+
+class ImageDecodeWidget(QWidget):
+    def __init__(self, parent: QWidget):
+        super(ImageDecodeWidget, self).__init__(parent)
+
+        self._init_ui()
+
+    def _init_ui(self):
+        # Init layout
+        self.layout = QVBoxLayout(self)
+
+        # Add load stego image and save extracted file
+        h_frame_widget = QWidget()
+        h_frame_layout = QHBoxLayout()
+        h_frame_layout.setContentsMargins(0,0,0,0)
+
+        self.button_load_stego = QPushButton('Load stego image', self)
+        self.button_load_stego.clicked.connect(self._load_stego_image)
+        h_frame_layout.addWidget(self.button_load_stego)
+
+        self.button_save_extracted = QPushButton('Save extracted file', self)
+        self.button_save_extracted.clicked.connect(self._save_extracted_image)
+        self.button_save_extracted.setDisabled(True)
+        h_frame_layout.addWidget(self.button_save_extracted)
+
+        h_frame_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        h_frame_widget.setLayout(h_frame_layout)
+        self.layout.addWidget(h_frame_widget)
+
+        # Add key input
+        self.textbox_key = QLineEdit(self)
+        self.textbox_key.setPlaceholderText('Stegano Key')
+        self.layout.addWidget(self.textbox_key)
+
+        # Add extract button
+        self.button_steganify = QPushButton('De-Steganify!', self)
+        self.button_steganify.clicked.connect(self._steganify)
+        self.layout.addWidget(self.button_steganify)
+
+        self.setLayout(self.layout)
+
+    def _load_stego_image(self):
+        full_path = open_file(self, 'Choose stego image', FILE_TYPE_FILTER['Image'])
+        if full_path is None:
+            return
+
+        _, file_name = path.split(full_path)
+        self.button_load_stego.setText(f'Chosen image: {file_name}')
+
+    def _save_extracted_image(self):
+        full_path = save_file(self, 'Save extracted file', FILE_TYPE_FILTER['Any'])
+        print(full_path)
+
+    def _steganify(self):
+        # payloaded_file, psnr = lsb.embed_to_image(...)
+        # self.stego_image = QPixmap.loadFromData(payloaded_file)
+        # self.button_save_stego.setDisabled(False)
+        pass
