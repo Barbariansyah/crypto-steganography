@@ -1,6 +1,7 @@
 from pathlib import Path
 import os
 import struct
+from bitarray import bitarray
 
 root_path = Path('./')
 
@@ -10,6 +11,17 @@ def seed_generator(key):
     for c in key:
         seed += ord(c)
     return seed
+
+# def random_unique_location(seed, )
+
+def bytes_to_bit(bytes_input):
+    temp = bitarray()
+    temp.frombytes(bytes_input)
+    return temp.to01()
+
+def bit_to_bytes(bit_input):
+    temp = bitarray(bit_input)
+    return temp.tobytes()
 
 def calculate_image_capacity(width, height):
     bit_capacity = width * height * 3
@@ -44,16 +56,23 @@ def binary_to_string(binary):
         result += chr(int(temp, 2))
     return result        
 
+def get_file_name_from_path(path):
+    return path.split('/')[-1]
+
 def image_metadata_to_binary(method, encrypt, sequential, threshold, file_size, file_name):
     metadata_binary = ''
     metadata_binary += '0' if method == 'lsb' else '1'
     metadata_binary += '0' if encrypt == False else '1'
     metadata_binary += '0' if sequential == False else '1'
     metadata_binary += float_to_binary(threshold)
+    
     metadata_binary += format(file_size, '032b')
     file_name_binary = string_to_binary(file_name)
-    metadata_binary += format(len(file_name_binary), '016b')
     metadata_binary += file_name_binary
+    
+    metadata_length = len(metadata_binary) + 16
+    metadata_binary = format(metadata_length, '016b') + metadata_binary 
+    
     return metadata_binary
 
         
