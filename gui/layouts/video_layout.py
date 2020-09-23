@@ -25,23 +25,23 @@ class VideoEncodeWidget(QWidget):
         h_frame_layout = QHBoxLayout()
         h_frame_layout.setContentsMargins(0,0,0,0)
 
-        self.button_load_container = QPushButton('Choose container video', self)
-        self.button_load_container.clicked.connect(self._open_container_video)
-        h_frame_layout.addWidget(self.button_load_container)
+        self.button_load_cover = QPushButton('Choose cover video', self)
+        self.button_load_cover.clicked.connect(self._open_cover_video)
+        h_frame_layout.addWidget(self.button_load_cover)
 
-        self.button_save_payloaded = QPushButton('Save payloaded video', self)
-        self.button_save_payloaded.clicked.connect(self._save_payloaded_video)
-        self.button_save_payloaded.setDisabled(True)
-        h_frame_layout.addWidget(self.button_save_payloaded)
+        self.button_save_stego = QPushButton('Save stego video', self)
+        self.button_save_stego.clicked.connect(self._save_stego_video)
+        self.button_save_stego.setDisabled(True)
+        h_frame_layout.addWidget(self.button_save_stego)
 
         h_frame_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
         h_frame_widget.setLayout(h_frame_layout)
         self.layout.addWidget(h_frame_widget)
 
-        # Add load to be hidden file
-        self.button_load_hidden = QPushButton('Choose file to be hidden', self)
-        self.button_load_hidden.clicked.connect(self._open_hidden_file)
-        self.layout.addWidget(self.button_load_hidden)
+        # Add load embedded file
+        self.button_load_embedded = QPushButton('Choose file to be embedded', self)
+        self.button_load_embedded.clicked.connect(self._open_embedded_file)
+        self.layout.addWidget(self.button_load_embedded)
 
         # Add stegano properties config
         self._init_stegano_properties_ui()
@@ -52,7 +52,7 @@ class VideoEncodeWidget(QWidget):
         self.layout.addWidget(self.button_steganify)
 
         # Add psnr info label
-        self.label_psnr = QLabel('File succesfully hidden with PSNR: ', self)
+        self.label_psnr = QLabel('File succesfully embedded with PSNR: ', self)
         self.label_psnr.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.label_psnr.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(self.label_psnr)
@@ -129,30 +129,30 @@ class VideoEncodeWidget(QWidget):
         pixel_seq_radio_pane.setLayout(pixel_seq_radio_layout)
         return pixel_seq_radio_pane
 
-    def _open_container_video(self):
-        full_path = open_file('Choose container video', FILE_TYPE_FILTER['Video'])
+    def _open_cover_video(self):
+        full_path = open_file(self, 'Choose cover video', FILE_TYPE_FILTER['Video'])
         if full_path is None:
             return
 
         _, file_name = path.split(full_path)
-        self.button_load_container.setText(f'Chosen video: {file_name}')
+        self.button_load_cover.setText(f'Chosen video: {file_name}')
     
-    def _open_hidden_file(self):
-        full_path = open_file('Choose file to be hidden', FILE_TYPE_FILTER['Any'])
+    def _open_embedded_file(self):
+        full_path = open_file(self, 'Choose file to be embedded', FILE_TYPE_FILTER['Any'])
         if full_path is None:
             return
 
         _, file_name = path.split(full_path)
-        self.button_load_container.setText(f'Chosen file: {file_name}')
+        self.button_load_embedded.setText(f'Chosen file: {file_name}')
 
-    def _save_payloaded_video(self):
-        full_path = save_file('Chose save location', FILE_TYPE_FILTER['Image'])
+    def _save_stego_video(self):
+        full_path = save_file(self, 'Chose save location', FILE_TYPE_FILTER['Image'])
         print(full_path)
 
     def _steganify(self):
-        # payloaded_file, psnr = lsb.embed_to_image(...)
-        # self.payloaded_image = QPixmap.loadFromData(payloaded_file)
-        # self.button_save_payloaded.setDisabled(False)
+        # stego_file, psnr = lsb.embed_to_image(...)
+        # self.stego_image = QPixmap.loadFromData(stego_file)
+        # self.button_save_stego.setDisabled(False)
         # self.label_psnr.setText(psnr)
         pass
     

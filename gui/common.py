@@ -13,14 +13,14 @@ IMAGE_MIN_DIM = 200
 IMAGE_DIM = 480
 
 
-def open_file(self, dialog_title: str, file_filter: str):
-    file_name, _ = QFileDialog.getOpenFileName(self, dialog_title, '', file_filter)
+def open_file(parent: QWidget, dialog_title: str, file_filter: str):
+    file_name, _ = QFileDialog.getOpenFileName(parent, dialog_title, '', file_filter)
     
     if file_name:
         return file_name
 
-def save_file(self, dialog_title: str, file_filter: str):
-    file_name, _ = QFileDialog.getSaveFileName(self, dialog_title, '', file_filter)
+def save_file(parent: QWidget, dialog_title: str, file_filter: str):
+    file_name, _ = QFileDialog.getSaveFileName(parent, dialog_title, '', file_filter)
     
     if file_name:
         return file_name
