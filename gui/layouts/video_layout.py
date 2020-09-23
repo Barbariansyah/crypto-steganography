@@ -2,7 +2,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from os import path
-from gui.common import FILE_TYPE_FILTER, IMAGE_DIM
+from gui.common import FILE_TYPE_FILTER, IMAGE_DIM, open_file, save_file
 from steganography.image_steganography import lsb
 
 class VideoEncodeWidget(QWidget):
@@ -129,21 +129,8 @@ class VideoEncodeWidget(QWidget):
         pixel_seq_radio_pane.setLayout(pixel_seq_radio_layout)
         return pixel_seq_radio_pane
 
-    def _open_file(self, dialog_title: str, file_filter: str):
-        options = QFileDialog.Options()
-        file_name, _ = QFileDialog.getOpenFileName(self, dialog_title, '', file_filter, options=options)
-        
-        if file_name:
-            return file_name
-
-    def _save_file(self, dialog_title: str, file_filter: str):
-        file_name, _ = QFileDialog.getSaveFileName(self, dialog_title, '', file_filter)
-        
-        if file_name:
-            return file_name
-
     def _open_container_video(self):
-        full_path = self._open_file('Choose container video', FILE_TYPE_FILTER['Video'])
+        full_path = open_file('Choose container video', FILE_TYPE_FILTER['Video'])
         if full_path is None:
             return
 
@@ -151,7 +138,7 @@ class VideoEncodeWidget(QWidget):
         self.button_load_container.setText(f'Chosen video: {file_name}')
     
     def _open_hidden_file(self):
-        full_path = self._open_file('Choose file to be hidden', FILE_TYPE_FILTER['Any'])
+        full_path = open_file('Choose file to be hidden', FILE_TYPE_FILTER['Any'])
         if full_path is None:
             return
 
@@ -159,7 +146,7 @@ class VideoEncodeWidget(QWidget):
         self.button_load_container.setText(f'Chosen file: {file_name}')
 
     def _save_payloaded_video(self):
-        full_path = self._save_file('Chose save location', FILE_TYPE_FILTER['Image'])
+        full_path = save_file('Chose save location', FILE_TYPE_FILTER['Image'])
         print(full_path)
 
     def _steganify(self):

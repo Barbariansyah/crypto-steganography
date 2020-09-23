@@ -1,4 +1,5 @@
 import typing
+from PyQt5.QtWidgets import *
 
 APP_MODE: typing.List[str] = ['Image encode', 'Video encode', 'Audio encode', 'Image extract', 'Video extract', 'Audio extract']
 FILE_TYPE_FILTER: typing.Dict[str, str] = {
@@ -10,3 +11,16 @@ FILE_TYPE_FILTER: typing.Dict[str, str] = {
 WIDGET_MIN_DIM = 360
 IMAGE_MIN_DIM = 200
 IMAGE_DIM = 480
+
+
+def open_file(self, dialog_title: str, file_filter: str):
+    file_name, _ = QFileDialog.getOpenFileName(self, dialog_title, '', file_filter)
+    
+    if file_name:
+        return file_name
+
+def save_file(self, dialog_title: str, file_filter: str):
+    file_name, _ = QFileDialog.getSaveFileName(self, dialog_title, '', file_filter)
+    
+    if file_name:
+        return file_name

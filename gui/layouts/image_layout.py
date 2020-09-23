@@ -2,7 +2,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from os import path
-from gui.common import FILE_TYPE_FILTER, IMAGE_DIM, IMAGE_MIN_DIM
+from gui.common import FILE_TYPE_FILTER, IMAGE_DIM, IMAGE_MIN_DIM, open_file, save_file
 from steganography.image_steganography import lsb
 
 class ImageEncodeWidget(QWidget):
@@ -164,21 +164,8 @@ class ImageEncodeWidget(QWidget):
         sequential_radio_pane.setLayout(sequential_radio_layout)
         return sequential_radio_pane
 
-    def _open_file(self, dialog_title: str, file_filter: str):
-        options = QFileDialog.Options()
-        file_name, _ = QFileDialog.getOpenFileName(self, dialog_title, '', file_filter, options=options)
-        
-        if file_name:
-            return file_name
-
-    def _save_file(self, dialog_title: str, file_filter: str):
-        file_name, _ = QFileDialog.getSaveFileName(self, dialog_title, '', file_filter)
-        
-        if file_name:
-            return file_name
-
     def _open_container_image(self):
-        full_path = self._open_file('Choose container image', FILE_TYPE_FILTER['Image'])
+        full_path = open_file('Choose container image', FILE_TYPE_FILTER['Image'])
         if full_path is None:
             return
 
@@ -189,7 +176,7 @@ class ImageEncodeWidget(QWidget):
         self.image_l.setPixmap(self.original_image)
     
     def _open_hidden_file(self):
-        full_path = self._open_file('Choose file to be hidden', FILE_TYPE_FILTER['Any'])
+        full_path = open_file('Choose file to be hidden', FILE_TYPE_FILTER['Any'])
         if full_path is None:
             return
 
@@ -197,7 +184,7 @@ class ImageEncodeWidget(QWidget):
         self.button_load_container.setText(f'Chosen file: {file_name}')
 
     def _save_payloaded_image(self):
-        full_path = self._save_file('Chose save location', FILE_TYPE_FILTER['Image'])
+        full_path = save_file('Chose save location', FILE_TYPE_FILTER['Image'])
         print(full_path)
 
     def _steganify(self):
@@ -215,3 +202,61 @@ class ImageEncodeWidget(QWidget):
     
     def _sequential_choice_cb(self, state: QRadioButton):
         self.sequential = True if state.text() == 'Sequential' else False
+
+class ImageDecodeWidget(QWidget):
+    def __init__(self, parent: QWidget):
+        super(ImageDecodeWidget, self).__init__(parent)
+
+        self._init_ui()
+
+    def _init_ui(self):
+        # Init layout
+        self.layout = QVBoxLayout(self)
+
+        # Add load payloaded image and save extracted file
+        h_frame_widget = QWidget()
+        h_frame_layout = QHBoxLayout()
+        h_frame_layout.setContentsMargins(0,0,0,0)
+
+        self.button_load_payloaded = QPushButton('Load payloaded image', self)
+        self.button_load_payloaded.clicked.connect(self._load_payloaded_image)
+        h_frame_layout.addWidget(self.button_load_payloaded)
+
+        self.button_save_decoded = QPushButton('Save extracted file', self)
+        self.button_save_decoded.clicked.connect(self._save_decoded_image)
+        self.button_save_decoded.setDisabled(True)
+        h_frame_layout.addWidget(self.button_save_decoded)
+
+        h_frame_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        h_frame_widget.setLayout(h_frame_layout)
+        self.layout.addWidget(h_frame_widget)
+
+        # Add key input
+        self.textbox_key = QLineEdit(self)
+        self.textbox_key.setPlaceholderText('Stegano Key')
+        self.layout.addWidget(self.textbox_key)
+
+        # Add extract button
+        self.button_steganify = QPushButton('De-Steganify!', self)
+        self.button_steganify.clicked.connect(self._steganify)
+        self.layout.addWidget(self.button_steganify)
+
+        self.setLayout(self.layout)
+
+    def _load_payloaded_image(self):
+        full_path = open_file('Choose payloaded image', FILE_TYPE_FILTER['Image'])
+        if full_path is None:
+            return
+
+        _, file_name = path.split(full_path)
+        self.button_load_container.setText(f'Chosen image: {file_name}')
+
+    def _save_decoded_image(self):
+        full_path = save_file('Save decoded file', FILE_TYPE_FILTER['Any'])
+        print(full_path)
+
+    def _steganify(self):
+        # payloaded_file, psnr = lsb.embed_to_image(...)
+        # self.payloaded_image = QPixmap.loadFromData(payloaded_file)
+        # self.button_save_payloaded.setDisabled(False)
+        pass

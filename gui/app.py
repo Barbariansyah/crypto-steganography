@@ -2,7 +2,7 @@ import typing
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-from gui.layouts.image_layout import ImageEncodeWidget
+from gui.layouts.image_layout import ImageEncodeWidget, ImageDecodeWidget
 from gui.layouts.video_layout import VideoEncodeWidget
 from gui.layouts.audio_layout import AudioEncodeWidget
 from gui.common import APP_MODE, WIDGET_MIN_DIM
@@ -29,6 +29,10 @@ class MainWidget(QWidget):
         self.mode_widget['Image encode'].setHidden(True)
         layout.addWidget(self.mode_widget['Image encode'])
 
+        self.mode_widget['Image extract'] = ImageDecodeWidget(self)
+        self.mode_widget['Image extract'].setHidden(True)
+        layout.addWidget(self.mode_widget['Image extract'])
+
         self.mode_widget['Video encode'] = VideoEncodeWidget(self)
         self.mode_widget['Video encode'].setHidden(True)
         layout.addWidget(self.mode_widget['Video encode'])
@@ -41,6 +45,7 @@ class MainWidget(QWidget):
         modes = APP_MODE
         for mode in modes:
             if mode == 'Image encode' \
+                or mode == 'Image extract' \
                 or mode == 'Video encode' \
                 or mode == 'Audio encode':
                 continue
@@ -66,7 +71,7 @@ class MainWidget(QWidget):
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.title = 'Steganify!'
+        self.title = 'Steganify'
         self.left = 150
         self.top = 150
         self.width = 640
