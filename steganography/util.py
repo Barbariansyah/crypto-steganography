@@ -25,20 +25,33 @@ def handle_ascii_file(file):
 def get_file_size(file_name):
     return os.stat(root_path/file_name).st_size
 
+def binary_to_int(binary):
+    return int(binary, 2)
+
 def float_to_binary(float_input):
     return bin(struct.unpack('!I', struct.pack('!f', float_input))[0])[2:].zfill(32)
 
 def binary_to_float(binary):
     return struct.unpack('!f',struct.pack('!I', int(binary, 2)))[0]
 
-def image_metadata_to_binary(method, encrypt, sequential, seed, threshold, file_name):
+def string_to_binary(string_input):
+    return ''.join(format(ord(c), '08b') for c in string_input)
+
+def binary_to_string(binary):
+    result = ''
+    for i in range(0, len(binary), 8):
+        temp = binary[i:i+8]
+        result += chr(int(temp, 2))
+    return result        
+
+def image_metadata_to_binary(method, encrypt, sequential, threshold, file_size, file_name):
     metadata_binary = ''
     metadata_binary += '0' if method == 'lsb' else '1'
     metadata_binary += '0' if encrypt == False else '1'
     metadata_binary += '0' if sequential == False else '1'
-    metadata_binary += format(seed, '08b')
-    
-    file_name_binary = ''.join(format(ord(c), '08b') for c in file_name)
+    metadata_binary += float_to_binary(threshold)
+    metadata_binary += format(file_size, '032b')
+    file_name_binary = string_to_binary(file_name)
     metadata_binary += format(len(file_name_binary), '016b')
     metadata_binary += file_name_binary
     return metadata_binary
