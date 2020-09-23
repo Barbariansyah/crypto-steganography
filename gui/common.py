@@ -7,4 +7,6 @@ FILE_TYPE_FILTER: typing.Dict[str, str] = {
     'Audio': 'WAV Videos (*.wav)',
     'Any': 'All Files (*)',
 }
+WIDGET_MIN_DIM = 360
+IMAGE_MIN_DIM = 200
 IMAGE_DIM = 480

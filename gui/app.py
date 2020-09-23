@@ -2,8 +2,9 @@ import typing
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-from gui.image_layout import ImageEncodeWidget
-from gui.common import APP_MODE
+from gui.layouts.image_layout import ImageEncodeWidget
+from gui.layouts.video_layout import VideoEncodeWidget
+from gui.common import APP_MODE, WIDGET_MIN_DIM
 
 class MainWidget(QWidget):
     def __init__(self, parent: QWidget):
@@ -17,6 +18,7 @@ class MainWidget(QWidget):
 
         # Init default (none) widget
         self.mode_widget['None'] = QLabel('Choose a mode', self)
+        self.mode_widget['None'].setMinimumSize(WIDGET_MIN_DIM, WIDGET_MIN_DIM)
         self.mode_widget['None'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.mode_widget['None'].setAlignment(Qt.AlignCenter)
         layout.addWidget(self.mode_widget['None'])
@@ -26,13 +28,18 @@ class MainWidget(QWidget):
         self.mode_widget['Image encode'].setHidden(True)
         layout.addWidget(self.mode_widget['Image encode'])
 
+        self.mode_widget['Video encode'] = VideoEncodeWidget(self)
+        self.mode_widget['Video encode'].setHidden(True)
+        layout.addWidget(self.mode_widget['Video encode'])
+
         # Placeholder for unfinished widget
         modes = APP_MODE
         for mode in modes:
-            if mode == 'Image encode':
+            if mode == 'Image encode' or mode == 'Video encode':
                 continue
 
             self.mode_widget[mode] = QLabel(f'{mode} mode', self)
+            self.mode_widget[mode].setMinimumSize(WIDGET_MIN_DIM, WIDGET_MIN_DIM)
             self.mode_widget[mode].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
             self.mode_widget[mode].setAlignment(Qt.AlignCenter)
             self.mode_widget[mode].setHidden(True)
@@ -93,6 +100,7 @@ class App(QMainWindow):
         self.mode = new_mode
         self.main_widget.redraw_ui(self.mode)
         self._set_actions(self.mode)
+        self.resize(self.minimumSizeHint())
 
     def _set_actions(self, mode: str):
         for action in self.mode_actions:

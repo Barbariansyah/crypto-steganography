@@ -2,7 +2,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from os import path
-from gui.common import FILE_TYPE_FILTER, IMAGE_DIM
+from gui.common import FILE_TYPE_FILTER, IMAGE_DIM, IMAGE_MIN_DIM
 from steganography.image_steganography import lsb
 
 class ImageEncodeWidget(QWidget):
@@ -62,6 +62,7 @@ class ImageEncodeWidget(QWidget):
 
         self.image_l = QLabel(original_image_pane)
         self.image_l.setFrameStyle(QFrame.Box)
+        self.image_l.setMinimumSize(IMAGE_MIN_DIM, IMAGE_MIN_DIM)
         self.image_l.setMaximumSize(IMAGE_DIM, IMAGE_DIM)
         self.image_l.setScaledContents(True)
         original_image_layout.addWidget(self.image_l)
@@ -80,6 +81,7 @@ class ImageEncodeWidget(QWidget):
 
         self.image_r = QLabel(payloaded_image_pane)
         self.image_r.setFrameStyle(QFrame.Box)
+        self.image_r.setMinimumSize(IMAGE_MIN_DIM, IMAGE_MIN_DIM)
         self.image_r.setMaximumSize(IMAGE_DIM, IMAGE_DIM)
         self.image_r.setScaledContents(True)
         payloaded_image_layout.addWidget(self.image_r)
@@ -110,12 +112,12 @@ class ImageEncodeWidget(QWidget):
         encrypt_group = QButtonGroup(self)
         encrypt_group.buttonClicked.connect(self._encrypt_choice_cb)
 
-        button = QRadioButton('With Encryption')
+        button = QRadioButton('With encryption')
         button.setChecked(True)
         encrypt_group.addButton(button)
         encrypt_radio_layout.addWidget(button)
 
-        button = QRadioButton('Without Encryption')
+        button = QRadioButton('Without encryption')
         encrypt_group.addButton(button)
         encrypt_radio_layout.addWidget(button)
 
@@ -181,7 +183,7 @@ class ImageEncodeWidget(QWidget):
         self.image_l.setPixmap(self.original_image)
     
     def _open_hidden_file(self):
-        file_name = self._open_file('Choose file to be hidden', FILE_TYPE_FILTER['Any'])
+        full_path = self._open_file('Choose file to be hidden', FILE_TYPE_FILTER['Any'])
         if full_path is None:
             return
 
@@ -199,7 +201,7 @@ class ImageEncodeWidget(QWidget):
         pass
     
     def _encrypt_choice_cb(self, state: QRadioButton):
-        self.encrypt = True if state.text() == 'With Encryption' else False
+        self.encrypt = True if state.text() == 'With encryption' else False
     
     def _method_choice_cb(self, state: QRadioButton):
         self.method = state.text()
