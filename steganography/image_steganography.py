@@ -50,6 +50,8 @@ def embed_to_image_bpcs():
 
 def embed_to_image(embedded_file: str, cover_file: str, key: str, method: str, encrypt: bool, sequential: bool, threshold: bool = 0.3):  
     embedded_file_size = get_file_size(embedded_file)
+    print(embedded_file_size)
+    return
     file_name = get_file_name_from_path(cover_file)
     metadata_binary = image_metadata_to_binary(method, encrypt, sequential, threshold, embedded_file_size, file_name)
     with Image.open(resource_path/cover_file) as cover_img:

@@ -74,5 +74,13 @@ def image_metadata_to_binary(method, encrypt, sequential, threshold, file_size, 
     metadata_binary = format(metadata_length, '016b') + metadata_binary 
     
     return metadata_binary
-
-        
+    
+def binary_to_image_metadata(metadata_bin):
+    metadata_size = binary_to_int(metadata_bin[0:16])
+    method = 'lsb' if metadata_bin[16] == '0' else 'bpcs'        
+    encrypt = False if metadata_bin[17] == '0' else True
+    sequential = False if metadata_bin[18] == '0' else True
+    threshold = binary_to_float(metadata_bin[19:51])
+    embed_file_size = binary_to_int(metadata_bin[51:83])
+    cover_file_name = binary_to_string(metadata_bin[83:])
+    return metadata_size, method, encrypt, sequential, threshold, embed_file_size, cover_file_name
