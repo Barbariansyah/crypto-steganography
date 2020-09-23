@@ -6,7 +6,7 @@ from gui.common import FILE_TYPE_FILTER, IMAGE_DIM
 from steganography.image_steganography import lsb
 
 class ImageEncodeWidget(QWidget):
-    def __init__(self, parent):
+    def __init__(self, parent: QWidget):
         super(ImageEncodeWidget, self).__init__(parent)
         self.original_image = None
         self.payloaded_image = None
@@ -162,7 +162,7 @@ class ImageEncodeWidget(QWidget):
         sequential_radio_pane.setLayout(sequential_radio_layout)
         return sequential_radio_pane
 
-    def _open_file(self, dialog_title, file_filter):
+    def _open_file(self, dialog_title: str, file_filter: str):
         options = QFileDialog.Options()
         file_name, _ = QFileDialog.getOpenFileName(self, dialog_title, '', file_filter, options=options)
         
@@ -198,11 +198,11 @@ class ImageEncodeWidget(QWidget):
         # self.label_psnr.setText(psnr)
         pass
     
-    def _encrypt_choice_cb(self, state):
+    def _encrypt_choice_cb(self, state: QRadioButton):
         self.encrypt = True if state.text() == 'With Encryption' else False
     
-    def _method_choice_cb(self, state):
+    def _method_choice_cb(self, state: QRadioButton):
         self.method = state.text()
     
-    def _sequential_choice_cb(self, state):
+    def _sequential_choice_cb(self, state: QRadioButton):
         self.sequential = True if state.text() == 'Sequential' else False

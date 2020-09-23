@@ -1,46 +1,52 @@
+import typing
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from gui.image_layout import ImageEncodeWidget
+from gui.common import APP_MODE
 
 class MainWidget(QWidget):
-    def __init__(self, parent):
+    def __init__(self, parent: QWidget):
         super(MainWidget, self).__init__(parent)
+        self.mode_widget: typing.Dict[QWidget] = dict()
         self._init_ui()
 
     def _init_ui(self):
         # Init layout
         layout = QVBoxLayout(self)
 
-        # Init active widget
-        self.text_info = QLabel('Choose a mode', self)
-        self.text_info.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.text_info.setAlignment(Qt.AlignCenter)
-        layout.addWidget(self.text_info)
+        # Init default (none) widget
+        self.mode_widget['None'] = QLabel('Choose a mode', self)
+        self.mode_widget['None'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.mode_widget['None'].setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.mode_widget['None'])
 
-        # Init and hide specific operation widget
-        self.image_widget = ImageEncodeWidget(self)
-        self.image_widget.setHidden(True)
-        layout.addWidget(self.image_widget)
+        # Init all mode widget
+        self.mode_widget['Image encode'] = ImageEncodeWidget(self)
+        self.mode_widget['Image encode'].setHidden(True)
+        layout.addWidget(self.mode_widget['Image encode'])
+
+        # Placeholder for unfinished widget
+        modes = APP_MODE
+        for mode in modes:
+            if mode == 'Image encode':
+                continue
+
+            self.mode_widget[mode] = QLabel(f'{mode} mode', self)
+            self.mode_widget[mode].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+            self.mode_widget[mode].setAlignment(Qt.AlignCenter)
+            self.mode_widget[mode].setHidden(True)
+            layout.addWidget(self.mode_widget[mode])
 
         self.setLayout(layout)
 
-    def redraw_ui(self, mode):
-        if mode == 'None':
-            self.text_info.setText('Choose a mode')
-
-        if mode == 'Image':
-            self.image_widget.setHidden(False)
-            self.text_info.setHidden(True)
-        else:
-            self.image_widget.setHidden(True)
-            self.text_info.setHidden(False)
-
-        if mode == 'Video':
-            self.text_info.setText('Video mode')
-
-        if mode == 'Audio':
-            self.text_info.setText('Audio mode')
+    def redraw_ui(self, active_mode: str):
+        modes = APP_MODE + ['None']
+        for mode in modes:
+            if mode == active_mode:
+                self.mode_widget[mode].setHidden(False)
+            else:
+                self.mode_widget[mode].setHidden(True)
 
 
 class App(QMainWindow):
@@ -75,22 +81,21 @@ class App(QMainWindow):
 
         # Add modes
         self.mode_actions = []
-        modes = ['Image', 'Video', 'Audio']
+        modes = APP_MODE
         for mode in modes:
             imageMode = QAction(mode, self)
             imageMode.setCheckable(True)
             self.mode_actions.append(imageMode)
             mode_menu.addAction(imageMode)
         
-    def _menu_cb(self, action):
+    def _menu_cb(self, action: QAction):
         new_mode = action.text() if action.isChecked() else 'None'
-        self._set_mode(new_mode)
+        self.mode = new_mode
+        self.main_widget.redraw_ui(self.mode)
+        self._set_actions(self.mode)
 
-    def _set_mode(self, mode):
-        self.mode = mode
-
+    def _set_actions(self, mode: str):
         for action in self.mode_actions:
             if action.text() != mode:
                 action.setChecked(False)
 
-        self.main_widget.redraw_ui(self.mode)
