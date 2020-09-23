@@ -171,6 +171,12 @@ class ImageEncodeWidget(QWidget):
         if file_name:
             return file_name
 
+    def _save_file(self, dialog_title: str, file_filter: str):
+        file_name, _ = QFileDialog.getSaveFileName(self, dialog_title, '', file_filter)
+        
+        if file_name:
+            return file_name
+
     def _open_container_image(self):
         full_path = self._open_file('Choose container image', FILE_TYPE_FILTER['Image'])
         if full_path is None:
@@ -191,7 +197,8 @@ class ImageEncodeWidget(QWidget):
         self.button_load_container.setText(f'Chosen file: {file_name}')
 
     def _save_payloaded_image(self):
-        pass
+        full_path = self._save_file('Chose save location', FILE_TYPE_FILTER['Image'])
+        print(full_path)
 
     def _steganify(self):
         # payloaded_file, psnr = lsb.embed_to_image(...)

@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from gui.layouts.image_layout import ImageEncodeWidget
 from gui.layouts.video_layout import VideoEncodeWidget
+from gui.layouts.audio_layout import AudioEncodeWidget
 from gui.common import APP_MODE, WIDGET_MIN_DIM
 
 class MainWidget(QWidget):
@@ -32,10 +33,16 @@ class MainWidget(QWidget):
         self.mode_widget['Video encode'].setHidden(True)
         layout.addWidget(self.mode_widget['Video encode'])
 
+        self.mode_widget['Audio encode'] = AudioEncodeWidget(self)
+        self.mode_widget['Audio encode'].setHidden(True)
+        layout.addWidget(self.mode_widget['Audio encode'])
+
         # Placeholder for unfinished widget
         modes = APP_MODE
         for mode in modes:
-            if mode == 'Image encode' or mode == 'Video encode':
+            if mode == 'Image encode' \
+                or mode == 'Video encode' \
+                or mode == 'Audio encode':
                 continue
 
             self.mode_widget[mode] = QLabel(f'{mode} mode', self)

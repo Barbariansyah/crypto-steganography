@@ -5,14 +5,13 @@ from os import path
 from gui.common import FILE_TYPE_FILTER, IMAGE_DIM
 from steganography.image_steganography import lsb
 
-class VideoEncodeWidget(QWidget):
+class AudioEncodeWidget(QWidget):
     def __init__(self, parent: QWidget):
-        super(VideoEncodeWidget, self).__init__(parent)
+        super(AudioEncodeWidget, self).__init__(parent)
 
         # Stegano properties
         self.encrypt = True
-        self.frame_seq = True
-        self.pixel_seq = True
+        self.sequential = True
 
         self._init_ui()
 
@@ -20,17 +19,17 @@ class VideoEncodeWidget(QWidget):
         # Init layout
         self.layout = QVBoxLayout(self)
 
-        # Add load and save video
+        # Add load and save audio
         h_frame_widget = QWidget()
         h_frame_layout = QHBoxLayout()
         h_frame_layout.setContentsMargins(0,0,0,0)
 
-        self.button_load_container = QPushButton('Choose container video', self)
-        self.button_load_container.clicked.connect(self._open_container_video)
+        self.button_load_container = QPushButton('Choose container audio', self)
+        self.button_load_container.clicked.connect(self._open_container_audio)
         h_frame_layout.addWidget(self.button_load_container)
 
-        self.button_save_payloaded = QPushButton('Save payloaded video', self)
-        self.button_save_payloaded.clicked.connect(self._save_payloaded_video)
+        self.button_save_payloaded = QPushButton('Save payloaded audio', self)
+        self.button_save_payloaded.clicked.connect(self._save_payloaded_audio)
         self.button_save_payloaded.setDisabled(True)
         h_frame_layout.addWidget(self.button_save_payloaded)
 
@@ -61,8 +60,7 @@ class VideoEncodeWidget(QWidget):
 
     def _init_stegano_properties_ui(self):
         self.layout.addWidget(self._init_encrypt_radio())
-        self.layout.addWidget(self._init_frame_seq_radio())
-        self.layout.addWidget(self._init_pixel_seq_radio())
+        self.layout.addWidget(self._init_sequential_radio())
 
         # Add key input
         self.textbox_key = QLineEdit(self)
@@ -89,45 +87,25 @@ class VideoEncodeWidget(QWidget):
         encrypt_radio_pane.setLayout(encrypt_radio_layout)
         return encrypt_radio_pane
 
-    def _init_frame_seq_radio(self):
-        frame_seq_radio_pane = QWidget()
-        frame_seq_radio_layout = QHBoxLayout()
-        frame_seq_radio_layout.setContentsMargins(0,0,0,0)
+    def _init_sequential_radio(self):
+        sequential_radio_pane = QWidget()
+        sequential_radio_layout = QHBoxLayout()
+        sequential_radio_layout.setContentsMargins(0,0,0,0)
 
-        frame_seq_group = QButtonGroup(self)
-        frame_seq_group.buttonClicked.connect(self._frame_seq_choice_cb)
+        sequential_group = QButtonGroup(self)
+        sequential_group.buttonClicked.connect(self._sequential_choice_cb)
 
-        button = QRadioButton('Frame sequential')
+        button = QRadioButton('Sequential')
         button.setChecked(True)
-        frame_seq_group.addButton(button)
-        frame_seq_radio_layout.addWidget(button)
+        sequential_group.addButton(button)
+        sequential_radio_layout.addWidget(button)
 
-        button = QRadioButton('Frame random')
-        frame_seq_group.addButton(button)
-        frame_seq_radio_layout.addWidget(button)
+        button = QRadioButton('Random')
+        sequential_group.addButton(button)
+        sequential_radio_layout.addWidget(button)
 
-        frame_seq_radio_pane.setLayout(frame_seq_radio_layout)
-        return frame_seq_radio_pane
-
-    def _init_pixel_seq_radio(self):
-        pixel_seq_radio_pane = QWidget()
-        pixel_seq_radio_layout = QHBoxLayout()
-        pixel_seq_radio_layout.setContentsMargins(0,0,0,0)
-
-        pixel_seq_group = QButtonGroup(self)
-        pixel_seq_group.buttonClicked.connect(self._pixel_seq_choice_cb)
-
-        button = QRadioButton('Pixel sequential')
-        button.setChecked(True)
-        pixel_seq_group.addButton(button)
-        pixel_seq_radio_layout.addWidget(button)
-
-        button = QRadioButton('Pixel random')
-        pixel_seq_group.addButton(button)
-        pixel_seq_radio_layout.addWidget(button)
-
-        pixel_seq_radio_pane.setLayout(pixel_seq_radio_layout)
-        return pixel_seq_radio_pane
+        sequential_radio_pane.setLayout(sequential_radio_layout)
+        return sequential_radio_pane
 
     def _open_file(self, dialog_title: str, file_filter: str):
         options = QFileDialog.Options()
@@ -142,13 +120,16 @@ class VideoEncodeWidget(QWidget):
         if file_name:
             return file_name
 
-    def _open_container_video(self):
-        full_path = self._open_file('Choose container video', FILE_TYPE_FILTER['Video'])
+    def _open_container_audio(self):
+        full_path = self._open_file('Choose container audio', FILE_TYPE_FILTER['Audio'])
         if full_path is None:
             return
 
         _, file_name = path.split(full_path)
-        self.button_load_container.setText(f'Chosen video: {file_name}')
+        self.original_image = QPixmap(full_path)
+
+        self.button_load_container.setText(f'Chosen audio: {file_name}')
+        self.image_l.setPixmap(self.original_image)
     
     def _open_hidden_file(self):
         full_path = self._open_file('Choose file to be hidden', FILE_TYPE_FILTER['Any'])
@@ -158,8 +139,8 @@ class VideoEncodeWidget(QWidget):
         _, file_name = path.split(full_path)
         self.button_load_container.setText(f'Chosen file: {file_name}')
 
-    def _save_payloaded_video(self):
-        full_path = self._save_file('Chose save location', FILE_TYPE_FILTER['Image'])
+    def _save_payloaded_audio(self):
+        full_path = self._save_file('Chose save location', FILE_TYPE_FILTER['Audio'])
         print(full_path)
 
     def _steganify(self):
@@ -172,8 +153,5 @@ class VideoEncodeWidget(QWidget):
     def _encrypt_choice_cb(self, state: QRadioButton):
         self.encrypt = True if state.text() == 'With encryption' else False
     
-    def _frame_seq_choice_cb(self, state: QRadioButton):
-        self.frame_seq = True if state.text() == 'Frame sequential' else False
-    
-    def _pixel_seq_choice_cb(self, state: QRadioButton):
-        self.pixel_seq = True if state.text() == 'Pixel sequential' else False
+    def _sequential_choice_cb(self, state: QRadioButton):
+        self.sequential = True if state.text() == 'Sequential' else False
