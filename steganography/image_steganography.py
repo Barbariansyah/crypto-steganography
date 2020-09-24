@@ -1,6 +1,6 @@
 from PIL import Image
 from pathlib import Path
-from steganography.util import seed_generator, calculate_image_capacity, get_file_size, image_metadata_to_binary, get_file_name_from_path, bytes_to_bit
+from steganography.util import seed_generator, calculate_image_capacity, get_file_size, image_metadata_to_binary, get_file_name_from_path, bytes_to_bit, binary_to_image_metadata, binary_to_int
 from steganography.cipher.vigenere import extended_vigenere_encrypter
 
 resource_path = Path('./')
@@ -50,10 +50,8 @@ def embed_to_image_bpcs():
 
 def embed_to_image(embedded_file: str, cover_file: str, key: str, method: str, encrypt: bool, sequential: bool, threshold: bool = 0.3):  
     embedded_file_size = get_file_size(embedded_file)
-    print(embedded_file_size)
-    return
-    file_name = get_file_name_from_path(cover_file)
-    metadata_binary = image_metadata_to_binary(method, encrypt, sequential, threshold, embedded_file_size, file_name)
+    embedded_file_name = get_file_name_from_path(embedded_file)
+    metadata_binary = image_metadata_to_binary(method, encrypt, sequential, threshold, embedded_file_size, embedded_file_name)
     with Image.open(resource_path/cover_file) as cover_img:
         width, height = cover_img.size
         cover_capacity_bit, cover_capacity_byte = calculate_image_capacity(width, height)
@@ -69,15 +67,32 @@ def embed_to_image(embedded_file: str, cover_file: str, key: str, method: str, e
                 embed_to_image_bpcs()
 
 
-def extract_from_image():
-    with Image.open(resource_path/"small-shorthair.png") as img:
-        width, height = img.size
-        # for x in range(0, width):
-        #     for y in range(0, height):
-        pix = img.getpixel((100,100))
-        pix = list(pix)
-        print(pix[3])
-        # for p in pix:
-        #     binary = format(p, '08b')
-        #     print(binary)
-        #     print(int(binary, 2))
+def extract_from_image_lsb():
+    pass
+
+def extract_from_image_bpcs():
+    pass
+
+def extract_from_image(stego_file: str, key: str):
+    binary = ''
+    with Image.open(resource_path/stego_file) as stego_img:
+        width, height = stego_img.size
+        for x in range(0, width):
+            for y in range(0, height):
+                pix = stego_img.getpixel((x,y))
+                pix = list(pix)
+                for i in range(3):
+                        binary += str(pix[i] & 1)
+    metadata_size = binary_to_int(binary[:16])
+    metadata_size, method, encrypt, sequential, threshold, embed_file_size, embed_file_name = binary_to_image_metadata(binary[:metadata_size])
+    print(metadata_size)
+    print(method)
+    print(encrypt)
+    print(sequential)
+    print(threshold)
+    print(embed_file_size)
+    print(embed_file_name)
+    # if(method=='lsb'):
+    #     extract_from_image_lsb(binary)
+    # else:
+    #     extract_from_image_bpcs()

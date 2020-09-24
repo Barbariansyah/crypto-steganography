@@ -19,14 +19,14 @@ if __name__ == "__main__":
     # a = b'message'
     # a_bit = bytes_to_bit(a)
     # print(bit_to_bytes(a_bit))
-    # metadata_size, method, encrypt, sequential, threshold, embed_file_size, cover_file_name = binary_to_image_metadata('0000000010111011011001111101001100110011001100110100000000000000000000000000000101001110011011010000110111101110010011101000110100001100001011010010111001000101110011100000110111001100111')
+    # metadata_size, method, encrypt, sequential, threshold, embed_file_size, embed_file_name = binary_to_image_metadata('0000000010111011011001111101001100110011001100110100000000000000000000000000000101001110011011010000110111101110010011101000110100001100001011010010111001000101110011100000110111001100111')
     # print(metadata_size)
     # print(method)
     # print(encrypt)
     # print(sequential)
     # print(threshold)
     # print(embed_file_size)
-    # print(cover_file_name)
+    # print(embed_file_name)
     '''
     cipher
     '''
@@ -51,7 +51,8 @@ if __name__ == "__main__":
     '''
     embed to image
     '''
-    embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/shorthair.png", key="steganography", method="lsb", encrypt=True, sequential=True)
+    # embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/shorthair.png", key="steganography", method="lsb", encrypt=True, sequential=True)
+    extract_from_image(stego_file="steganography/sample_result/shorthair.png", key="steganography")
 
     '''
     comparing images

@@ -82,5 +82,5 @@ def binary_to_image_metadata(metadata_bin):
     sequential = False if metadata_bin[18] == '0' else True
     threshold = binary_to_float(metadata_bin[19:51])
     embed_file_size = binary_to_int(metadata_bin[51:83])
-    cover_file_name = binary_to_string(metadata_bin[83:])
-    return metadata_size, method, encrypt, sequential, threshold, embed_file_size, cover_file_name
+    embed_file_name = binary_to_string(metadata_bin[83:])
+    return metadata_size, method, encrypt, sequential, threshold, embed_file_size, embed_file_name
