@@ -1,7 +1,7 @@
 from PIL import Image
 from pathlib import Path
-from steganography.util import seed_generator, calculate_image_capacity, get_file_size, image_metadata_to_binary, get_file_name_from_path, bytes_to_bit, binary_to_image_metadata, binary_to_int
-from steganography.cipher.vigenere import extended_vigenere_encrypter
+from steganography.util import seed_generator, calculate_image_capacity, get_file_size, image_metadata_to_binary, get_file_name_from_path, bytes_to_bit, binary_to_image_metadata, binary_to_int, bit_to_bytes
+from steganography.cipher.vigenere import extended_vigenere_encrypter, extended_vigenere_decrypter
 
 resource_path = Path('./')
 destination_path = Path('./steganography/sample_result')
@@ -67,8 +67,15 @@ def embed_to_image(embedded_file: str, cover_file: str, key: str, method: str, e
                 embed_to_image_bpcs()
 
 
-def extract_from_image_lsb():
-    pass
+def extract_from_image_lsb(binary, metadata_size, encrypt, sequential, embed_file_size, embed_file_name, key):
+    content_binary = binary[metadata_size:metadata_size+embed_file_size*8]
+    print(content_binary)
+    if sequential :
+        content_bytes = bit_to_bytes(content_binary)
+        if(encrypt):
+            content_bytes = extended_vigenere_decrypter(content_bytes, key)
+        with open(destination_path/embed_file_name, 'wb+') as f:
+            f.write(content_bytes)
 
 def extract_from_image_bpcs():
     pass
@@ -92,7 +99,8 @@ def extract_from_image(stego_file: str, key: str):
     print(threshold)
     print(embed_file_size)
     print(embed_file_name)
-    # if(method=='lsb'):
-    #     extract_from_image_lsb(binary)
-    # else:
-    #     extract_from_image_bpcs()
+    if(method=='lsb'):
+        extract_from_image_lsb(binary, metadata_size, encrypt, sequential, embed_file_size, embed_file_name, key)
+    else:
+        return
+        # extract_from_image_bpcs()

@@ -51,7 +51,7 @@ if __name__ == "__main__":
     '''
     embed to image
     '''
-    # embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/shorthair.png", key="steganography", method="lsb", encrypt=True, sequential=True)
+    # embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/shorthair.png", key="steganography", method="lsb", encrypt=False, sequential=True)
     extract_from_image(stego_file="steganography/sample_result/shorthair.png", key="steganography")
 
     '''
