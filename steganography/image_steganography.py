@@ -1,6 +1,6 @@
 from PIL import Image
 from pathlib import Path
-from steganography.util import seed_generator, calculate_image_capacity, get_file_size, image_metadata_to_binary, get_file_name_from_path, bytes_to_bit, binary_to_image_metadata, binary_to_int, bit_to_bytes
+from steganography.util import seed_generator, calculate_image_capacity, get_file_size, image_metadata_to_binary, get_file_name_from_path, bytes_to_bit, binary_to_image_metadata, binary_to_int, bit_to_bytes, random_unique_location
 from steganography.cipher.vigenere import extended_vigenere_encrypter, extended_vigenere_decrypter
 
 resource_path = Path('./')
@@ -42,8 +42,40 @@ def embed_to_image_lsb(embedded_file: str, cover_img, key: str, encrypt: bool, s
                 cover_img.putpixel((x,y), tuple(pix))
         cover_img.save(destination_path/get_file_name_from_path(cover_img.filename), "PNG")
     else:
+        metadata_length = len(metadata_binary)
         print('embedding randomly')
         seed = seed_generator(key)
+        location = random_unique_location(metadata_length, len(content), seed, width, height)
+        
+        #embedding metadata
+        for x in range(0, width):
+            if pointer >= metadata_length:
+                break
+            for y in range(0, height):
+                if pointer >= metadata_length:
+                    break
+                pix = cover_img.getpixel((x,y))
+                pix = list(pix)
+                for i in range(3):
+                    if pointer < metadata_length:
+                        pix[i] = pix[i] & ~1 | int(metadata_binary[pointer])
+                        pointer += 1
+                    else:
+                        break
+                cover_img.putpixel((x,y), tuple(pix))
+
+        #embedding content
+        for idx, loc in enumerate(location):
+            x, rem = divmod(loc, height*3) 
+            y, rem = divmod(rem, 3)
+            i = rem
+            pix = cover_img.getpixel((x,y))
+            pix = list(pix)
+            pix[i] = pix[i] & ~1 | int(content[idx])
+            cover_img.putpixel((x,y), tuple(pix))
+        
+        cover_img.save(destination_path/get_file_name_from_path(cover_img.filename), "PNG")
+                
 
 def embed_to_image_bpcs():
     pass
@@ -67,15 +99,22 @@ def embed_to_image(embedded_file: str, cover_file: str, key: str, method: str, e
                 embed_to_image_bpcs()
 
 
-def extract_from_image_lsb(binary, metadata_size, encrypt, sequential, embed_file_size, embed_file_name, key):
-    content_binary = binary[metadata_size:metadata_size+embed_file_size*8]
-    print(content_binary)
+def extract_from_image_lsb(binary, metadata_size, encrypt, sequential, embed_file_size, embed_file_name, key, cover_width, cover_height):
     if sequential :
-        content_bytes = bit_to_bytes(content_binary)
-        if(encrypt):
-            content_bytes = extended_vigenere_decrypter(content_bytes, key)
-        with open(destination_path/embed_file_name, 'wb+') as f:
-            f.write(content_bytes)
+        print('extracting seq')
+        content_binary = binary[metadata_size:metadata_size+embed_file_size*8]
+    else:
+        print('extracting random')
+        location = random_unique_location(metadata_length=metadata_size, content_length=embed_file_size*8, seed= seed_generator(key), width=cover_width, height=cover_height)
+        content_binary = ''
+        for loc in location:
+            content_binary += binary[loc]
+    content_bytes = bit_to_bytes(content_binary)
+    if(encrypt):
+        content_bytes = extended_vigenere_decrypter(content_bytes, key)
+    with open(destination_path/embed_file_name, 'wb+') as f:
+        f.write(content_bytes)
+
 
 def extract_from_image_bpcs():
     pass
@@ -100,7 +139,7 @@ def extract_from_image(stego_file: str, key: str):
     print(embed_file_size)
     print(embed_file_name)
     if(method=='lsb'):
-        extract_from_image_lsb(binary, metadata_size, encrypt, sequential, embed_file_size, embed_file_name, key)
+        extract_from_image_lsb(binary, metadata_size, encrypt, sequential, embed_file_size, embed_file_name, key, width, height)
     else:
         return
         # extract_from_image_bpcs()

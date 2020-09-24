@@ -27,6 +27,7 @@ if __name__ == "__main__":
     # print(threshold)
     # print(embed_file_size)
     # print(embed_file_name)
+    # print(random_unique_location(19, 20, 2, 30, 30))
     '''
     cipher
     '''
@@ -51,9 +52,11 @@ if __name__ == "__main__":
     '''
     embed to image
     '''
-    # embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/shorthair.png", key="steganography", method="lsb", encrypt=False, sequential=True)
-    extract_from_image(stego_file="steganography/sample_result/shorthair.png", key="steganography")
+    # embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/shorthair.png", key="steganography", method="lsb", encrypt=True, sequential=True)
+    # extract_from_image(stego_file="steganography/sample_result/shorthair.png", key="steganography")
 
+    embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/shorthair.png", key="steganography", method="lsb", encrypt=True, sequential=False)
+    extract_from_image(stego_file="steganography/sample_result/shorthair.png", key="steganography")
     '''
     comparing images
     '''

@@ -2,6 +2,7 @@ from pathlib import Path
 import os
 import struct
 from bitarray import bitarray
+import random
 
 root_path = Path('./')
 
@@ -12,7 +13,11 @@ def seed_generator(key):
         seed += ord(c)
     return seed
 
-# def random_unique_location(seed, )
+def random_unique_location(metadata_length, content_length, seed, width, height):
+    random.seed(seed)
+    location = random.sample(range(metadata_length, width*height*3), content_length)
+    return location    
+
 
 def bytes_to_bit(bytes_input):
     temp = bitarray()
