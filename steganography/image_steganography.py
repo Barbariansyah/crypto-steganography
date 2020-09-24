@@ -40,7 +40,7 @@ def embed_to_image_lsb(embedded_file: str, cover_img, key: str, encrypt: bool, s
                     else:
                         break
                 cover_img.putpixel((x,y), tuple(pix))
-        cover_img.save(destination_path/get_file_name_from_path(cover_img.filename), "PNG")
+        cover_img.save(destination_path/get_file_name_from_path(cover_img.filename))
     else:
         metadata_length = len(metadata_binary)
         print('embedding randomly')
@@ -74,7 +74,7 @@ def embed_to_image_lsb(embedded_file: str, cover_img, key: str, encrypt: bool, s
             pix[i] = pix[i] & ~1 | int(content[idx])
             cover_img.putpixel((x,y), tuple(pix))
         
-        cover_img.save(destination_path/get_file_name_from_path(cover_img.filename), "PNG")
+        cover_img.save(destination_path/get_file_name_from_path(cover_img.filename))
                 
 
 def embed_to_image_bpcs():
