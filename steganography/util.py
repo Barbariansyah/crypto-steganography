@@ -135,8 +135,18 @@ def pbc_to_cgc(block):
 def cgc_to_pbc(block):
     pass
 
-def count_block_complexity(block):
-    pass
+def count_bitplane_complexity(bitplane):
+    width = len(bitplane[0])
+    height = len(bitplane)
+    k = 0
+    n = (height - 1) * width + (width - 1) * height
+    for x in range(width-1):
+        for y in range(height-1):
+                if bitplane[y][x] != bitplane[y+1][x]:
+                    k+=1
+                if bitplane[y][x] != bitplane[y][x+1]:
+                    k+=1
+    return k/n
 
 def message_bin_to_blocks(message):
     pass

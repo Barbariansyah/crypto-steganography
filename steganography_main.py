@@ -31,16 +31,28 @@ if __name__ == "__main__":
 
     # print(int_to_binary(255))
 
-    with Image.open(resource_path/'sample_images/shorthair.png') as cover_img:
-        blocks = cover_to_blocks(cover_img)
+    # with Image.open(resource_path/'sample_images/shorthair.png') as cover_img:
+    #     blocks = cover_to_blocks(cover_img)
 
     # print(len(blocks))
     # print(len(blocks[0]))
     # print(len(blocks[0][0]))
     # print(len(blocks[0][0][0]))
     # print(blocks[0][0])
-    bitplane = block_to_bitplane(blocks[0][0])
-    print(bitplane)
+    # bitplane = block_to_bitplane(blocks[0][0])
+    # print(bitplane)
+
+    bitplane = [
+        [0,0,0,0,0,0,0,1],
+        [0,0,0,0,0,0,0,0],
+        [1,0,1,1,0,0,0,1],
+        [1,0,0,1,0,0,0,1],
+        [1,0,0,0,0,0,0,1],
+        [0,0,0,1,0,0,0,0],
+        [0,0,1,0,1,0,0,0],
+        [0,0,0,1,0,0,0,0]
+        ]
+    print(count_bitplane_complexity(bitplane))
     '''
     cipher
     '''
