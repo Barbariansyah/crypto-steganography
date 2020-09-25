@@ -129,11 +129,25 @@ def block_to_bitplane(block):
                     bitplane[idx][y][x] = int(c)
     return bitplane
 
-def pbc_to_cgc(block):
-    pass
+def bitplane_pbc_to_cgc(bitplane):
+    width = len(bitplane[0])
+    height = len(bitplane)
+    cgc = [[0 for _ in range(width)] for _ in range(height)]
+    for y in range(height):
+        cgc[y][0] = bitplane[y][0]
+        for x in range(1, width):    
+            cgc[y][x] = bitplane[y][x] ^ bitplane[y][x-1]
+    return cgc
 
-def cgc_to_pbc(block):
-    pass
+def bitplane_cgc_to_pbc(bitplane):
+    width = len(bitplane[0])
+    height = len(bitplane)
+    pbc = [[0 for _ in range(width)] for _ in range(height)]
+    for y in range(height):
+        pbc[y][0] = bitplane[y][0]
+        for x in range(1, width):    
+            pbc[y][x] = bitplane[y][x] ^ pbc[y][x-1]
+    return pbc
 
 def count_bitplane_complexity(bitplane):
     width = len(bitplane[0])

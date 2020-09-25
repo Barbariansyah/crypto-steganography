@@ -52,7 +52,13 @@ if __name__ == "__main__":
         [0,0,1,0,1,0,0,0],
         [0,0,0,1,0,0,0,0]
         ]
-    print(count_bitplane_complexity(bitplane))
+    # print(count_bitplane_complexity(bitplane))
+    cgc = bitplane_pbc_to_cgc(bitplane)
+    pbc = bitplane_cgc_to_pbc(cgc)
+
+    print(cgc)
+    print(pbc)
+    print(bitplane == pbc)
     '''
     cipher
     '''
