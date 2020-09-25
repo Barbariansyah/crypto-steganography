@@ -3,7 +3,6 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from os import path
 from gui.common import FILE_TYPE_FILTER, IMAGE_DIM, open_file, save_file
-from steganography.image_steganography import lsb
 
 class AudioEncodeWidget(QWidget):
     def __init__(self, parent: QWidget):
@@ -128,8 +127,8 @@ class AudioEncodeWidget(QWidget):
         print(full_path)
 
     def _steganify(self):
-        # stego_file, psnr = lsb.embed_to_image(...)
-        # self.stego_image = QPixmap.loadFromData(stego_file)
+        # stego_file, psnr = lsb.embed_to_audio(...)
+        # self.stego_audio = QPixmap.loadFromData(stego_file)
         # self.button_save_stego.setDisabled(False)
         # self.label_psnr.setText(psnr)
         pass
@@ -139,3 +138,61 @@ class AudioEncodeWidget(QWidget):
     
     def _sequential_choice_cb(self, state: QRadioButton):
         self.sequential = True if state.text() == 'Sequential' else False
+
+class AudioDecodeWidget(QWidget):
+    def __init__(self, parent: QWidget):
+        super(AudioDecodeWidget, self).__init__(parent)
+
+        self._init_ui()
+
+    def _init_ui(self):
+        # Init layout
+        self.layout = QVBoxLayout(self)
+
+        # Add load stego audio and save extracted file
+        h_frame_widget = QWidget()
+        h_frame_layout = QHBoxLayout()
+        h_frame_layout.setContentsMargins(0,0,0,0)
+
+        self.button_load_stego = QPushButton('Load stego audio', self)
+        self.button_load_stego.clicked.connect(self._load_stego_audio)
+        h_frame_layout.addWidget(self.button_load_stego)
+
+        self.button_save_extracted = QPushButton('Save extracted file', self)
+        self.button_save_extracted.clicked.connect(self._save_extracted_file)
+        self.button_save_extracted.setDisabled(True)
+        h_frame_layout.addWidget(self.button_save_extracted)
+
+        h_frame_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        h_frame_widget.setLayout(h_frame_layout)
+        self.layout.addWidget(h_frame_widget)
+
+        # Add key input
+        self.textbox_key = QLineEdit(self)
+        self.textbox_key.setPlaceholderText('Stegano Key')
+        self.layout.addWidget(self.textbox_key)
+
+        # Add extract button
+        self.button_steganify = QPushButton('De-Steganify!', self)
+        self.button_steganify.clicked.connect(self._desteganify)
+        self.layout.addWidget(self.button_steganify)
+
+        self.setLayout(self.layout)
+
+    def _load_stego_audio(self):
+        full_path = open_file(self, 'Choose stego audio', FILE_TYPE_FILTER['Video'])
+        if full_path is None:
+            return
+
+        _, file_name = path.split(full_path)
+        self.button_load_stego.setText(f'Chosen audio: {file_name}')
+
+    def _save_extracted_file(self):
+        full_path = save_file(self, 'Save extracted file', FILE_TYPE_FILTER['Any'])
+        print(full_path)
+
+    def _desteganify(self):
+        # payloaded_file, psnr = lsb.embed_to_audio(...)
+        # self.stego_audio = QPixmap.loadFromData(payloaded_file)
+        # self.button_save_stego.setDisabled(False)
+        pass

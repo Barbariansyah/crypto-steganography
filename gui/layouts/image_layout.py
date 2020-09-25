@@ -3,7 +3,6 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from os import path
 from gui.common import FILE_TYPE_FILTER, IMAGE_DIM, IMAGE_MIN_DIM, open_file, save_file
-from steganography.image_steganography import lsb
 
 class ImageEncodeWidget(QWidget):
     def __init__(self, parent: QWidget):
@@ -238,7 +237,7 @@ class ImageDecodeWidget(QWidget):
 
         # Add extract button
         self.button_steganify = QPushButton('De-Steganify!', self)
-        self.button_steganify.clicked.connect(self._steganify)
+        self.button_steganify.clicked.connect(self._desteganify)
         self.layout.addWidget(self.button_steganify)
 
         self.setLayout(self.layout)
@@ -255,7 +254,7 @@ class ImageDecodeWidget(QWidget):
         full_path = save_file(self, 'Save extracted file', FILE_TYPE_FILTER['Any'])
         print(full_path)
 
-    def _steganify(self):
+    def _desteganify(self):
         # payloaded_file, psnr = lsb.embed_to_image(...)
         # self.stego_image = QPixmap.loadFromData(payloaded_file)
         # self.button_save_stego.setDisabled(False)
