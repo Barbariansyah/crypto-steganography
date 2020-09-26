@@ -42,23 +42,30 @@ if __name__ == "__main__":
     # bitplane = block_to_bitplane(blocks[0][0])
     # print(bitplane)
 
-    bitplane = [
-        [0,0,0,0,0,0,0,1],
-        [0,0,0,0,0,0,0,0],
-        [1,0,1,1,0,0,0,1],
-        [1,0,0,1,0,0,0,1],
-        [1,0,0,0,0,0,0,1],
-        [0,0,0,1,0,0,0,0],
-        [0,0,1,0,1,0,0,0],
-        [0,0,0,1,0,0,0,0]
-        ]
+    # bitplane = [
+    #     [0,0,0,0,0,0,0,1],
+    #     [0,0,0,0,0,0,0,0],
+    #     [1,0,1,1,0,0,0,1],
+    #     [1,0,0,1,0,0,0,1],
+    #     [1,0,0,0,0,0,0,1],
+    #     [0,0,0,1,0,0,0,0],
+    #     [0,0,1,0,1,0,0,0],
+    #     [0,0,0,1,0,0,0,0]
+    #     ]
     # print(count_bitplane_complexity(bitplane))
-    cgc = bitplane_pbc_to_cgc(bitplane)
-    pbc = bitplane_cgc_to_pbc(cgc)
+    # cgc = bitplane_pbc_to_cgc(bitplane)
+    # pbc = bitplane_cgc_to_pbc(cgc)
 
-    print(cgc)
-    print(pbc)
-    print(bitplane == pbc)
+    # print(cgc)
+    # print(pbc)
+    # print(bitplane == pbc)
+
+    # conjugation = conjugate_block_with_wc(bitplane)
+    # print(count_bitplane_complexity(conjugation))
+
+    message = '11010011' * 8
+    message_blocks = message_bin_to_blocks(message)
+    print(message_blocks)
     '''
     cipher
     '''

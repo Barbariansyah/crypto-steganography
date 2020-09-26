@@ -163,8 +163,30 @@ def count_bitplane_complexity(bitplane):
     return k/n
 
 def message_bin_to_blocks(message):
-    pass
+    if len(message) % 64 != 0:
+        message += (64 - len(message) % 64) * '0'
+    blocks = []
+    for i in range(0, len(message), 64):
+        cur_bin = [int(c) for c in message[i:i+64]]
+        temp = np.reshape(cur_bin, (8, 8)).T
+        temp = temp.tolist()
+        blocks.append(temp)
+    return blocks
 
-def conjugate_blocks(block, conjugator):
-    pass
+def conjugate_block_with_wc(block):
+    conjugator = [
+        [0,1,0,1,0,1,0,1],
+        [1,0,1,0,1,0,1,0],
+        [0,1,0,1,0,1,0,1],
+        [1,0,1,0,1,0,1,0],
+        [0,1,0,1,0,1,0,1],
+        [1,0,1,0,1,0,1,0],
+        [0,1,0,1,0,1,0,1],
+        [1,0,1,0,1,0,1,0],
+    ]
+    for x in range(8):
+        for y in range(8):
+            conjugator[y][x] = conjugator[y][x] ^ block[y][x]
+    return conjugator
+            
 
