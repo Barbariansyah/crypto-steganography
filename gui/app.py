@@ -3,8 +3,8 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from gui.layouts.image_layout import ImageEncodeWidget, ImageDecodeWidget
-from gui.layouts.video_layout import VideoEncodeWidget
-from gui.layouts.audio_layout import AudioEncodeWidget
+from gui.layouts.video_layout import VideoEncodeWidget, VideoDecodeWidget
+from gui.layouts.audio_layout import AudioEncodeWidget, AudioDecodeWidget
 from gui.common import APP_MODE, WIDGET_MIN_DIM
 
 class MainWidget(QWidget):
@@ -37,25 +37,17 @@ class MainWidget(QWidget):
         self.mode_widget['Video encode'].setHidden(True)
         layout.addWidget(self.mode_widget['Video encode'])
 
+        self.mode_widget['Video extract'] = VideoDecodeWidget(self)
+        self.mode_widget['Video extract'].setHidden(True)
+        layout.addWidget(self.mode_widget['Video extract'])
+
         self.mode_widget['Audio encode'] = AudioEncodeWidget(self)
         self.mode_widget['Audio encode'].setHidden(True)
         layout.addWidget(self.mode_widget['Audio encode'])
 
-        # Placeholder for unfinished widget
-        modes = APP_MODE
-        for mode in modes:
-            if mode == 'Image encode' \
-                or mode == 'Image extract' \
-                or mode == 'Video encode' \
-                or mode == 'Audio encode':
-                continue
-
-            self.mode_widget[mode] = QLabel(f'{mode} mode', self)
-            self.mode_widget[mode].setMinimumSize(WIDGET_MIN_DIM, WIDGET_MIN_DIM)
-            self.mode_widget[mode].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-            self.mode_widget[mode].setAlignment(Qt.AlignCenter)
-            self.mode_widget[mode].setHidden(True)
-            layout.addWidget(self.mode_widget[mode])
+        self.mode_widget['Audio extract'] = AudioDecodeWidget(self)
+        self.mode_widget['Audio extract'].setHidden(True)
+        layout.addWidget(self.mode_widget['Audio extract'])
 
         self.setLayout(layout)
 
