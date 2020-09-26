@@ -28,6 +28,37 @@ if __name__ == "__main__":
     # print(embed_file_size)
     # print(embed_file_name)
     # print(random_unique_location(19, 20, 2, 30, 30))
+
+    # print(int_to_binary(255))
+
+    # with Image.open(resource_path/'sample_images/shorthair.png') as cover_img:
+    #     blocks = cover_to_blocks(cover_img)
+
+    # print(len(blocks))
+    # print(len(blocks[0]))
+    # print(len(blocks[0][0]))
+    # print(len(blocks[0][0][0]))
+    # print(blocks[0][0])
+    # bitplane = block_to_bitplane(blocks[0][0])
+    # print(bitplane)
+
+    bitplane = [
+        [0,0,0,0,0,0,0,1],
+        [0,0,0,0,0,0,0,0],
+        [1,0,1,1,0,0,0,1],
+        [1,0,0,1,0,0,0,1],
+        [1,0,0,0,0,0,0,1],
+        [0,0,0,1,0,0,0,0],
+        [0,0,1,0,1,0,0,0],
+        [0,0,0,1,0,0,0,0]
+        ]
+    # print(count_bitplane_complexity(bitplane))
+    cgc = bitplane_pbc_to_cgc(bitplane)
+    pbc = bitplane_cgc_to_pbc(cgc)
+
+    print(cgc)
+    print(pbc)
+    print(bitplane == pbc)
     '''
     cipher
     '''
@@ -52,10 +83,10 @@ if __name__ == "__main__":
     '''
     embed to image
     '''
-    # embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/shorthair.png", key="steganography", method="lsb", encrypt=True, sequential=True)
+    # embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/shorthair.png", key="steganography", method="lsb", encrypt=False, sequential=True)
     # extract_from_image(stego_file="steganography/sample_result/shorthair.png", key="steganography")
 
-    # embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/shorthair.png", key="steganography", method="lsb", encrypt=True, sequential=False)
+    # embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/shorthair.png", key="steganography", method="lsb", encrypt=False, sequential=False)
     # extract_from_image(stego_file="steganography/sample_result/shorthair.png", key="steganography")
 
     # embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/cat.bmp", key="steganography", method="lsb", encrypt=True, sequential=True)

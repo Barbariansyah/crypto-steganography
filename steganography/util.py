@@ -3,6 +3,8 @@ import os
 import struct
 from bitarray import bitarray
 import random
+import math
+import numpy as np
 
 root_path = Path('./')
 
@@ -40,6 +42,9 @@ def handle_ascii_file(file):
 
 def get_file_size(file_name):
     return os.stat(root_path/file_name).st_size
+
+def int_to_binary(integer):
+    return format(integer, '08b')
 
 def binary_to_int(binary):
     return int(binary, 2)
@@ -93,3 +98,78 @@ def binary_to_image_metadata(metadata_bin):
     embed_file_size = binary_to_int(metadata_bin[51:83])
     embed_file_name = binary_to_string(metadata_bin[83:])
     return metadata_size, method, encrypt, sequential, threshold, embed_file_size, embed_file_name
+
+def cover_to_blocks(cover_img):
+    width, height = cover_img.size
+    blocks = [[[] for _ in range(math.ceil(width/8))] for _ in range(math.ceil(height/8))]
+    pixels = list(cover_img.getdata())
+    pixels = [pixels[i * width:(i + 1) * width] for i in range(height)]
+
+    #fill up pseudo pixels
+    if len(pixels[0]) % 8 != 0:
+        rem = 8 - len(pixels[0]) % 8
+        for i in range(height):
+            pixels[i] += [(255, 255, 255, 255) * rem]
+    if len(pixels) % 8 != 0:
+        rem = 8 - len(pixels) % 8
+        for i in range(rem):
+            pixels.append([(255, 255, 255, 255) * width])
+
+    for x in range(0, width, 8):
+        for y in range(0, height, 8):
+            temp = []
+            for j in range(y, y+8):
+                temp.append(pixels[j][x:x+8])
+            blocks[y//8][x//8] = temp
+
+    return blocks
+
+def block_to_bitplane(block):
+    bitplane = [[[0 for _ in range(8)] for _ in range(8)] for _ in range(24)]
+    for x in range(8):
+        for y in range(8):
+            r, g, b, a = block[y][x]
+            pixel_binary = int_to_binary(r) + int_to_binary(g) + int_to_binary(b)
+            for idx, c in enumerate(pixel_binary):
+                    bitplane[idx][y][x] = int(c)
+    return bitplane
+
+def bitplane_pbc_to_cgc(bitplane):
+    width = len(bitplane[0])
+    height = len(bitplane)
+    cgc = [[0 for _ in range(width)] for _ in range(height)]
+    for y in range(height):
+        cgc[y][0] = bitplane[y][0]
+        for x in range(1, width):    
+            cgc[y][x] = bitplane[y][x] ^ bitplane[y][x-1]
+    return cgc
+
+def bitplane_cgc_to_pbc(bitplane):
+    width = len(bitplane[0])
+    height = len(bitplane)
+    pbc = [[0 for _ in range(width)] for _ in range(height)]
+    for y in range(height):
+        pbc[y][0] = bitplane[y][0]
+        for x in range(1, width):    
+            pbc[y][x] = bitplane[y][x] ^ pbc[y][x-1]
+    return pbc
+
+def count_bitplane_complexity(bitplane):
+    width = len(bitplane[0])
+    height = len(bitplane)
+    k = 0
+    n = (height - 1) * width + (width - 1) * height
+    for x in range(width-1):
+        for y in range(height-1):
+                if bitplane[y][x] != bitplane[y+1][x]:
+                    k+=1
+                if bitplane[y][x] != bitplane[y][x+1]:
+                    k+=1
+    return k/n
+
+def message_bin_to_blocks(message):
+    pass
+
+def conjugate_blocks(block, conjugator):
+    pass
+
