@@ -91,6 +91,7 @@ def embed_to_image_bpcs(embedded_file, cover_img, key, encrypt, sequential, thre
     print(len(content))
 
     blocks = cover_to_blocks(cover_img)
+    blocks_width, blocks_height = len(blocks[0]), len(blocks)
 
     #change blocks to blocks of bitplane
     for y in range(len(blocks)):
@@ -124,10 +125,28 @@ def embed_to_image_bpcs(embedded_file, cover_img, key, encrypt, sequential, thre
                     break
             cover_img.putpixel((x,y), tuple(pix))
     
-    width_start = math.ceil(math.ceil(math.ceil(metadata_length / 3) / width) / 8)
+    width_start = math.ceil(math.ceil(math.ceil(metadata_length / 3) / height) / 8)
 
+    message_pointer = 0
     if(sequential):
-        print('embedding sequentially')
+        # inserting message into bitplane
+        for x in range(width_start, blocks_width):
+            if message_pointer >= len(message_blocks):
+                break
+            for y in range(0, blocks_height):
+                if message_pointer >= len(message_blocks):
+                    break
+                for i in range(0, 24):
+                    if message_pointer < len(message_blocks):
+                        if count_bitplane_complexity(blocks[y][x][i]) > threshold:
+                            blocks[y][x][i] = message_blocks[message_pointer]
+                            message_pointer+=1
+                        else:
+                            continue
+                    else:
+                        break
+        #insert to image
+        #done
     else:
         print('embedding randomly')
     
