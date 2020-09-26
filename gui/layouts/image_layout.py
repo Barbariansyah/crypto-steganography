@@ -183,7 +183,7 @@ class ImageEncodeWidget(QWidget):
         self.button_load_embed.setText(f'Chosen file: {file_name}')
 
     def _save_stego_image(self):
-        full_path = save_file(self, 'Chose save location', FILE_TYPE_FILTER['Image'])
+        full_path = save_file(self, 'Chose save location', '', FILE_TYPE_FILTER['Image'])
         print(full_path)
 
     def _steganify(self):
@@ -251,7 +251,7 @@ class ImageDecodeWidget(QWidget):
         self.button_load_stego.setText(f'Chosen image: {file_name}')
 
     def _save_extracted_image(self):
-        full_path = save_file(self, 'Save extracted file', FILE_TYPE_FILTER['Any'])
+        full_path = save_file(self, 'Save extracted file', '', FILE_TYPE_FILTER['Any'])
         print(full_path)
 
     def _desteganify(self):

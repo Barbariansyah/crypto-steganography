@@ -145,7 +145,7 @@ class VideoEncodeWidget(QWidget):
         self.button_load_embedded.setText(f'Chosen file: {file_name}')
 
     def _save_stego_video(self):
-        full_path = save_file(self, 'Chose save location', FILE_TYPE_FILTER['Image'])
+        full_path = save_file(self, 'Chose save location', '', FILE_TYPE_FILTER['Image'])
         print(full_path)
 
     def _steganify(self):
@@ -213,7 +213,7 @@ class VideoDecodeWidget(QWidget):
         self.button_load_stego.setText(f'Chosen video: {file_name}')
 
     def _save_extracted_file(self):
-        full_path = save_file(self, 'Save extracted file', FILE_TYPE_FILTER['Any'])
+        full_path = save_file(self, 'Save extracted file', '', FILE_TYPE_FILTER['Any'])
         print(full_path)
 
     def _desteganify(self):
