@@ -1,7 +1,8 @@
 from PIL import Image
 from pathlib import Path
-from steganography.util import seed_generator, calculate_image_capacity, get_file_size, image_metadata_to_binary, get_file_name_from_path, bytes_to_bit, binary_to_image_metadata, binary_to_int, bit_to_bytes, random_unique_location
+from steganography.util import seed_generator, calculate_image_capacity, get_file_size, image_metadata_to_binary, get_file_name_from_path, bytes_to_bit, binary_to_image_metadata, binary_to_int, bit_to_bytes, random_unique_location, cover_to_blocks, block_to_bitplane
 from steganography.cipher.vigenere import extended_vigenere_encrypter, extended_vigenere_decrypter
+import math
 
 resource_path = Path('./')
 destination_path = Path('./steganography/sample_result')
@@ -77,8 +78,51 @@ def embed_to_image_lsb(embedded_file: str, cover_img, key: str, encrypt: bool, s
         cover_img.save(destination_path/get_file_name_from_path(cover_img.filename))
                 
 
-def embed_to_image_bpcs():
-    pass
+def embed_to_image_bpcs(embedded_file, cover_img, key, encrypt, sequential, threshold, metadata_binary):
+    width, height = cover_img.size
+    metadata_length = len(metadata_binary)
+    with open(embedded_file, 'rb') as f:
+        content = f.read()
+    
+    if(encrypt):
+        content = extended_vigenere_encrypter(content, key)
+    
+    content = bytes_to_bit(content)
+
+    #embedding metadata
+    pointer = 0
+    for x in range(0, width):
+        if pointer >= metadata_length:
+            break
+        for y in range(0, height):
+            if pointer >= metadata_length:
+                break
+            pix = cover_img.getpixel((x,y))
+            pix = list(pix)
+            for i in range(3):
+                if pointer < metadata_length:
+                    pix[i] = pix[i] & ~1 | int(metadata_binary[pointer])
+                    pointer += 1
+                else:
+                    break
+            cover_img.putpixel((x,y), tuple(pix))
+    
+    width_start = math.ceil(math.ceil(math.ceil(metadata_length / 3) / width) / 8)
+    blocks = cover_to_blocks(cover_img)
+    
+    # print(len(blocks))
+    # print(len(blocks[0]))
+    # print(len(blocks[0][0]))
+    # # print(blocks[0][0])
+    #change blocks to blocks of bitplane
+    for y in range(len(blocks)):
+        for x in range(len(blocks[y])):
+                blocks[y][x] = block_to_bitplane(blocks[y][x])
+    # print(blocks[0][0])
+    print(len(blocks[0][0]))
+    print(len(blocks[0][0][0]))
+    print(len(blocks[0][0][0][0]))
+    
 
 def embed_to_image(embedded_file: str, cover_file: str, key: str, method: str, encrypt: bool, sequential: bool, threshold: bool = 0.3):  
     embedded_file_size = get_file_size(embedded_file)
@@ -96,7 +140,7 @@ def embed_to_image(embedded_file: str, cover_file: str, key: str, method: str, e
             if(method=='lsb'):
                 embed_to_image_lsb(embedded_file, cover_img, key, encrypt, sequential, metadata_binary)
             else:
-                embed_to_image_bpcs()
+                embed_to_image_bpcs(embedded_file, cover_img, key, encrypt, sequential, threshold, metadata_binary)
 
 
 def extract_from_image_lsb(binary, metadata_size, encrypt, sequential, embed_file_size, embed_file_name, key, cover_width, cover_height):

@@ -37,10 +37,15 @@ if __name__ == "__main__":
     # print(len(blocks))
     # print(len(blocks[0]))
     # print(len(blocks[0][0]))
+    # #8 x 8
     # print(len(blocks[0][0][0]))
+    # print(len(blocks[0][0][0][0]))
     # print(blocks[0][0])
     # bitplane = block_to_bitplane(blocks[0][0])
-    # print(bitplane)
+    # print(bitplane) 24 x 8 x 8
+    # print(len(bitplane))
+    # print(len(bitplane[0]))
+    # print(len(bitplane[0][0]))
 
     # bitplane = [
     #     [0,0,0,0,0,0,0,1],
@@ -88,7 +93,7 @@ if __name__ == "__main__":
     # with open(dest, 'wb+') as f:
     #     f.write(decrypted)
     '''
-    embed to image
+    embed to image lsb
     '''
     # embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/shorthair.png", key="steganography", method="lsb", encrypt=False, sequential=True)
     # extract_from_image(stego_file="steganography/sample_result/shorthair.png", key="steganography")
@@ -101,6 +106,10 @@ if __name__ == "__main__":
 
     # embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/cat.bmp", key="steganography", method="lsb", encrypt=True, sequential=False)
     # extract_from_image(stego_file="steganography/sample_result/cat.bmp", key="steganography")
+    '''
+    embed to image bpcs
+    '''
+    embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/shorthair.png", key="steganography", method="bpcs", encrypt=True, sequential=True)
     '''
     comparing images
     '''

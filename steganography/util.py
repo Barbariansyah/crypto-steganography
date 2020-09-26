@@ -109,11 +109,11 @@ def cover_to_blocks(cover_img):
     if len(pixels[0]) % 8 != 0:
         rem = 8 - len(pixels[0]) % 8
         for i in range(height):
-            pixels[i] += [(255, 255, 255, 255) * rem]
+            pixels[i] += [(255, 255, 255, 255) for _ in range(rem)]
     if len(pixels) % 8 != 0:
         rem = 8 - len(pixels) % 8
         for i in range(rem):
-            pixels.append([(255, 255, 255, 255) * width])
+            pixels.append([(255, 255, 255, 255) for _ in range(width)])
 
     for x in range(0, width, 8):
         for y in range(0, height, 8):
