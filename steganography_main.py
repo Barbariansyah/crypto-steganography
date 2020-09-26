@@ -63,9 +63,9 @@ if __name__ == "__main__":
     # conjugation = conjugate_block_with_wc(bitplane)
     # print(count_bitplane_complexity(conjugation))
 
-    message = '11010011' * 8
-    message_blocks = message_bin_to_blocks(message)
-    print(message_blocks)
+    # message = '11010011' * 8
+    # message_blocks = message_bin_to_blocks(message)
+    # print(message_blocks)
     '''
     cipher
     '''
