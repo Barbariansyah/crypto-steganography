@@ -45,7 +45,7 @@ def embed_to_image_lsb(embedded_file: str, cover_img, key: str, encrypt: bool, s
         metadata_length = len(metadata_binary)
         print('embedding randomly')
         seed = seed_generator(key)
-        location = random_unique_location(metadata_length, len(content), seed, width, height)
+        location = random_unique_location(metadata_length, len(content), seed, width*height*3)
         
         #embedding metadata
         for x in range(0, width):
@@ -105,7 +105,7 @@ def extract_from_image_lsb(binary, metadata_size, encrypt, sequential, embed_fil
         content_binary = binary[metadata_size:metadata_size+embed_file_size*8]
     else:
         print('extracting random')
-        location = random_unique_location(metadata_length=metadata_size, content_length=embed_file_size*8, seed= seed_generator(key), width=cover_width, height=cover_height)
+        location = random_unique_location(metadata_size, embed_file_size*8, seed_generator(key), width*height*3)
         content_binary = ''
         for loc in location:
             content_binary += binary[loc]

@@ -13,11 +13,10 @@ def seed_generator(key):
         seed += ord(c)
     return seed
 
-def random_unique_location(metadata_length, content_length, seed, width, height):
+def random_unique_location(metadata_length, content_length, seed, cover_size):
     random.seed(seed)
-    location = random.sample(range(metadata_length, width*height*3), content_length)
+    location = random.sample(range(metadata_length, cover_size), content_length)
     return location    
-
 
 def bytes_to_bit(bytes_input):
     temp = bitarray()
@@ -62,7 +61,12 @@ def binary_to_string(binary):
     return result        
 
 def get_file_name_from_path(path):
-    return path.split('/')[-1]
+    _, file_name = os.path.split(path)
+    return file_name
+
+def save_bytes_to_file(file_bytes: bytes, path: str):
+    with open(path, 'wb+') as f:
+        f.write(file_bytes)
 
 def image_metadata_to_binary(method, encrypt, sequential, threshold, file_size, file_name):
     metadata_binary = ''
