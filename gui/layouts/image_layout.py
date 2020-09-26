@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from os import path
 from gui.common import FILE_TYPE_FILTER, IMAGE_DIM, IMAGE_MIN_DIM, open_file, save_file
+from steganography import embed_to_image, extract_from_image
 
 class ImageEncodeWidget(QWidget):
     def __init__(self, parent: QWidget):
@@ -12,7 +13,7 @@ class ImageEncodeWidget(QWidget):
 
         # Stegano properties
         self.encrypt = True
-        self.method = 'LSB'
+        self.method = 'lsb'
         self.sequential = True
 
         self._init_ui()
@@ -45,12 +46,6 @@ class ImageEncodeWidget(QWidget):
         self.button_steganify = QPushButton('Steganify!', self)
         self.button_steganify.clicked.connect(self._steganify)
         self.layout.addWidget(self.button_steganify)
-
-        # Add psnr info label
-        self.label_psnr = QLabel('File succesfully embedded with PSNR: ', self)
-        self.label_psnr.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
-        self.label_psnr.setAlignment(Qt.AlignCenter)
-        self.layout.addWidget(self.label_psnr)
 
         self.setLayout(self.layout)
 
@@ -102,6 +97,12 @@ class ImageEncodeWidget(QWidget):
         self.textbox_key = QLineEdit(self)
         self.textbox_key.setPlaceholderText('Stegano Key')
         self.layout.addWidget(self.textbox_key)
+
+        # Add threshold input
+        self.textbox_threshold = QLineEdit(self)
+        self.textbox_threshold.setPlaceholderText('BPCS Threshold')
+        self.textbox_threshold.setText('0.3')
+        self.layout.addWidget(self.textbox_threshold)
 
     def _init_encrypt_radio(self):
         encrypt_radio_pane = QWidget()
@@ -164,40 +165,53 @@ class ImageEncodeWidget(QWidget):
         return sequential_radio_pane
 
     def _open_cover_image(self):
-        full_path = open_file(self, 'Choose cover image', FILE_TYPE_FILTER['Image'])
-        if full_path is None:
+        self.cover_full_path = open_file(self, 'Choose cover image', FILE_TYPE_FILTER['Image'])
+        if self.cover_full_path is None:
             return
 
-        _, file_name = path.split(full_path)
-        self.cover_image = QPixmap(full_path)
+        _, file_name = path.split(self.cover_full_path)
+        self.cover_image = QPixmap(self.cover_full_path)
 
         self.button_load_cover.setText(f'Chosen image: {file_name}')
         self.image_l.setPixmap(self.cover_image)
     
     def _open_embedded_file(self):
-        full_path = open_file(self, 'Choose file to be embedded', FILE_TYPE_FILTER['Any'])
-        if full_path is None:
+        self.embed_full_path = open_file(self, 'Choose file to be embedded', FILE_TYPE_FILTER['Any'])
+        if self.embed_full_path is None:
             return
 
-        _, file_name = path.split(full_path)
+        _, file_name = path.split(self.embed_full_path)
         self.button_load_embed.setText(f'Chosen file: {file_name}')
 
     def _save_stego_image(self):
+        # TODO: Save file outside embed function
         full_path = save_file(self, 'Chose save location', '', FILE_TYPE_FILTER['Image'])
         print(full_path)
 
     def _steganify(self):
-        # payloaded_file, psnr = lsb.embed_to_image(...)
-        # self.stego_image = QPixmap.loadFromData(payloaded_file)
-        # self.button_save_stego.setDisabled(False)
-        # self.label_psnr.setText(psnr)
-        pass
+        # TODO: Return image and psnr value
+        embed_to_image(
+            self.embed_full_path, 
+            self.cover_full_path, 
+            self.textbox_key.text(), 
+            self.method, 
+            self.encrypt, 
+            self.sequential,
+            float(self.textbox_threshold.text())
+        )        
+        
+        message = QMessageBox(
+            QMessageBox.NoIcon, 
+            'Steganify', 
+            f'File succesfully embedded with PSNR ???'
+        )
+        message.exec()
     
     def _encrypt_choice_cb(self, state: QRadioButton):
         self.encrypt = True if state.text() == 'With encryption' else False
     
     def _method_choice_cb(self, state: QRadioButton):
-        self.method = state.text()
+        self.method = 'lsb' if state.text() == 'LSB' else 'bpcs'
     
     def _sequential_choice_cb(self, state: QRadioButton):
         self.sequential = True if state.text() == 'Sequential' else False
@@ -243,19 +257,24 @@ class ImageDecodeWidget(QWidget):
         self.setLayout(self.layout)
 
     def _load_stego_image(self):
-        full_path = open_file(self, 'Choose stego image', FILE_TYPE_FILTER['Image'])
-        if full_path is None:
+        self.stego_full_path = open_file(self, 'Choose stego image', FILE_TYPE_FILTER['Image'])
+        if self.stego_full_path is None:
             return
 
-        _, file_name = path.split(full_path)
+        _, file_name = path.split(self.stego_full_path)
         self.button_load_stego.setText(f'Chosen image: {file_name}')
 
     def _save_extracted_image(self):
+        # TODO: Save file outside embed function
         full_path = save_file(self, 'Save extracted file', '', FILE_TYPE_FILTER['Any'])
         print(full_path)
 
     def _desteganify(self):
-        # payloaded_file, psnr = lsb.embed_to_image(...)
-        # self.stego_image = QPixmap.loadFromData(payloaded_file)
-        # self.button_save_stego.setDisabled(False)
-        pass
+        # TODO: Return extracted file and psnr value
+        extract_from_image(self.stego_full_path, self.textbox_key.text())
+        message = QMessageBox(
+            QMessageBox.NoIcon, 
+            'Desteganify', 
+            'Successfully extracted'
+        )
+        message.exec()
