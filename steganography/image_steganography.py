@@ -247,16 +247,15 @@ def extract_from_image(stego_file: str, key: str):
                 for i in range(3):
                         binary += str(pix[i] & 1)
     metadata_size = binary_to_int(binary[:16])
-    print(binary[:16])
     metadata_size, method, encrypt, sequential, threshold, embed_file_size, embed_file_name = binary_to_image_metadata(binary[:metadata_size])
-    print(metadata_size)
-    print(method)
-    print(encrypt)
-    print(sequential)
-    print(threshold)
-    print(embed_file_size)
-    print(embed_file_name)
-    return
+    # print(metadata_size)
+    # print(method)
+    # print(encrypt)
+    # print(sequential)
+    # print(threshold)
+    # print(embed_file_size)
+    # print(embed_file_name)
+    # return
     if(method=='lsb'):
         extract_from_image_lsb(binary, metadata_size, encrypt, sequential, embed_file_size, embed_file_name, key, width, height)
     else:
