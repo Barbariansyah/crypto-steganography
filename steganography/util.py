@@ -202,6 +202,18 @@ def message_bin_to_blocks(message):
         blocks.append(temp)
     return blocks
 
+def message_blocks_to_bin(message_blocks, conjugation_map, message_length):
+    message = ''
+    for i, block in enumerate(message_blocks):
+        if conjugation_map[i]==1:
+            temp = conjugate_block_with_wc(block)
+        else:
+            temp = block
+        temp = temp.T
+        temp = np.reshape(temp, (64))
+        message += ''.join(str(b) for b in temp)
+    return message[:message_length]
+
 def conjugate_block_with_wc(block):
     conjugator = [
         [0,1,0,1,0,1,0,1],

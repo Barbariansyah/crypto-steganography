@@ -66,6 +66,8 @@ if __name__ == "__main__":
     # print(bitplane == pbc)
 
     # conjugation = conjugate_block_with_wc(bitplane)
+    # reconjugated = conjugate_block_with_wc(conjugation)
+    # print(bitplane == reconjugated)
     # print(count_bitplane_complexity(conjugation))
 
     # message = '11010011' * 8
@@ -109,8 +111,9 @@ if __name__ == "__main__":
     '''
     embed to image bpcs
     '''
-    # embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/shorthair.png", key="steganography", method="bpcs", encrypt=True, sequential=True)
-    embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/cat.bmp", key="steganography", method="bpcs", encrypt=True, sequential=True)
+    # embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/shorthair.png", key="steganography", method="bpcs", encrypt=False, sequential=True)
+    # embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/cat.bmp", key="steganography", method="bpcs", encrypt=True, sequential=True)
+    extract_from_image(stego_file="steganography/sample_result/shorthair.png", key="steganography")
     '''
     comparing images
     '''
