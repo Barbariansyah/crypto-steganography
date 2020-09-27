@@ -114,11 +114,11 @@ if __name__ == "__main__":
     # embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/shorthair.png", key="steganography", method="bpcs", encrypt=False, sequential=True)
     # embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/shorthair.png", key="steganography", method="bpcs", encrypt=False, sequential=True)
 
-    # embed_to_image(embedded_file="steganography/sample_files/bigger.txt", cover_file="steganography/sample_images/cat.bmp", key="steganography", method="bpcs", encrypt=True, sequential=True)
+    # embed_to_image(embedded_file="steganography/sample_files/bigger.txt", cover_file="steganography/sample_images/cat.bmp", key="steganography", method="bpcs", encrypt=True, sequential=False)
     
 
     # embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/shorthair.png", key="steganography", method="bpcs", encrypt=False, sequential=False)
-    extract_from_image(stego_file="steganography/sample_result/cat.bmp", key="steganography")
+    # extract_from_image(stego_file="steganography/sample_result/cat.bmp", key="steganography")
     '''
     comparing images
     '''
@@ -128,4 +128,8 @@ if __name__ == "__main__":
     #         for y in range(0, 20):
     #             pix = cover_img.getpixel((x,y))
     #             print(pix)
+
+    with Image.open(resource_path/'sample_images/cat.bmp') as cover_img:
+        with Image.open(resource_path/'sample_result/cat.bmp') as stego_img:
+            print(calculate_psnr(cover_img, stego_img))
     pass

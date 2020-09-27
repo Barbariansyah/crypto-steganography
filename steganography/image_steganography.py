@@ -77,7 +77,6 @@ def embed_to_image_lsb(embedded_file: str, cover_img, key: str, encrypt: bool, s
         
         cover_img.save(destination_path/get_file_name_from_path(cover_img.filename))
                 
-
 def embed_to_image_bpcs(embedded_file, cover_img, key, encrypt, sequential, threshold, metadata_binary):
     width, height = cover_img.size
     cover_img_filename = cover_img.filename
@@ -196,7 +195,6 @@ def embed_to_image(embedded_file: str, cover_file: str, key: str, method: str, e
             else:
                 embed_to_image_bpcs(embedded_file, cover_img, key, encrypt, sequential, threshold, metadata_binary)
 
-
 def extract_from_image_lsb(binary, metadata_size, encrypt, sequential, embed_file_size, embed_file_name, key, cover_width, cover_height):
     if sequential :
         print('extracting seq')
@@ -212,7 +210,6 @@ def extract_from_image_lsb(binary, metadata_size, encrypt, sequential, embed_fil
         content_bytes = extended_vigenere_decrypter(content_bytes, key)
     with open(destination_path/embed_file_name, 'wb+') as f:
         f.write(content_bytes)
-
 
 def extract_from_image_bpcs(stego_img, metadata_size, encrypt, sequential, embed_file_size, embed_file_name, key, width, height, conjugation_map, threshold):
     width_start = math.ceil(math.ceil(math.ceil(metadata_size / 3) / height) / 8)
@@ -289,3 +286,22 @@ def extract_from_image(stego_file: str, key: str):
         conjugation_map_length = binary_to_int(binary[metadata_size:metadata_size+32])
         conjugation_map = [ int(i) for i in binary[metadata_size+32:metadata_size+32+conjugation_map_length] ]
         extract_from_image_bpcs(stego_img, metadata_size+32+conjugation_map_length, encrypt, sequential, embed_file_size, embed_file_name, key, width, height, conjugation_map, threshold)
+
+def calculate_psnr(cover_img, stego_img):
+    width, height = cover_img.size
+    r_se, g_se, b_se = 0, 0, 0
+    for x in range(0, width):
+        for y in range(0, height):
+            s_pix = stego_img.getpixel((x,y))
+            s_pix = list(s_pix)
+            c_pix = cover_img.getpixel((x,y))
+            c_pix = list(c_pix)
+            r_se += (s_pix[0] - c_pix[0]) ** 2
+            g_se += (s_pix[1] - c_pix[1]) ** 2
+            b_se += (s_pix[2] - c_pix[2]) ** 2
+    r_mse = r_se / (width * height)
+    g_mse = g_se / (width * height)
+    b_mse = b_se / (width * height)
+    mse = (r_mse + g_mse + b_mse) / 3
+    psnr = 10 * math.log(((255 ** 2) / mse), 10)
+    return psnr
