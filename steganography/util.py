@@ -109,7 +109,7 @@ def cover_to_blocks(cover_img):
     if len(pixels[0]) % 8 != 0:
         rem = 8 - len(pixels[0]) % 8
         for i in range(height):
-            pixels[i] += [(255, 255, 255, 255) for _ in range(rem)]
+            pixels[i].extend([(255, 255, 255, 255) for _ in range(rem)])
     if len(pixels) % 8 != 0:
         rem = 8 - len(pixels) % 8
         for i in range(rem):
@@ -133,6 +133,28 @@ def block_to_bitplane(block):
             for idx, c in enumerate(pixel_binary):
                     bitplane[idx][y][x] = int(c)
     return bitplane
+
+def bitplane_to_block(bitplane, depth = 3):
+    block = [[[0 for _ in range(depth)] for _ in range(8)] for _ in range(8)]
+    for x in range(8):
+        for y in range(8):
+            pixel_binary = ''
+            for idx in range(8 * depth):
+                pixel_binary += str(bitplane[idx][y][x])
+            for idx in range(depth):
+                curr_pixel_binary = pixel_binary[idx*8:(idx+1)*8]
+                block[y][x][idx] = binary_to_int(curr_pixel_binary)
+    return block
+
+def blocks_to_np_img_array(blocks, width, height, depth = 3):
+    img_array = [[[0 for _ in range(depth)] for _ in range(width)] for _ in range(height)]
+    for x in range(width):
+        for y in range(height):
+            blocks_x, idx_x = x // 8, x % 8
+            blocks_y, idx_y = y // 8, y % 8
+            for i in range(depth):
+                img_array[y][x][i] = blocks[blocks_y][blocks_x][idx_y][idx_x][i]
+    return np.array(img_array, dtype='uint8')
 
 def bitplane_pbc_to_cgc(bitplane):
     width = len(bitplane[0])

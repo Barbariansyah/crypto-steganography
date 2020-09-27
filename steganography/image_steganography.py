@@ -149,7 +149,16 @@ def embed_to_image_bpcs(embedded_file, cover_img, key, encrypt, sequential, thre
         #done
     else:
         print('embedding randomly')
+
+    stego_blocks = [[None for _ in range(blocks_width)] for _ in range(blocks_height)]
+    for x in range(blocks_width):
+        for y in range(blocks_height):
+            stego_blocks[y][x] = bitplane_to_block(blocks[y][x])
     
+    stego_img = blocks_to_np_img_array(stego_blocks, width, height)
+    stego_img = Image.fromarray(stego_img).convert('RGB')
+    # stego_img.show()
+    return stego_img.tobytes()
 
 def embed_to_image(embedded_file: str, cover_file: str, key: str, method: str, encrypt: bool, sequential: bool, threshold: bool = 0.3):  
     embedded_file_size = get_file_size(embedded_file)
