@@ -235,7 +235,7 @@ def conjugate_block_with_wc(block):
 def generate_conjugation_map(message_blocks, threshold):
     conjugation_map = [0 for _ in range(len(message_blocks))]
     for idx, block in enumerate(message_blocks):
-        if count_bitplane_complexity(message_blocks) < threshold:
+        if count_bitplane_complexity(block) < threshold:
             conjugation_map[idx] = 1
             message_blocks[idx] = conjugate_block_with_wc(block)
     return conjugation_map
