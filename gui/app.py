@@ -7,6 +7,7 @@ from gui.layouts.video_layout import VideoEncodeWidget, VideoDecodeWidget
 from gui.layouts.audio_layout import AudioEncodeWidget, AudioDecodeWidget
 from gui.common import APP_MODE, WIDGET_MIN_DIM
 
+
 class MainWidget(QWidget):
     def __init__(self, parent: QWidget):
         super(MainWidget, self).__init__(parent)
@@ -20,7 +21,8 @@ class MainWidget(QWidget):
         # Init default (none) widget
         self.mode_widget['None'] = QLabel('Choose a mode', self)
         self.mode_widget['None'].setMinimumSize(WIDGET_MIN_DIM, WIDGET_MIN_DIM)
-        self.mode_widget['None'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.mode_widget['None'].setSizePolicy(
+            QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.mode_widget['None'].setAlignment(Qt.AlignCenter)
         layout.addWidget(self.mode_widget['None'])
 
@@ -98,7 +100,7 @@ class App(QMainWindow):
             imageMode.setCheckable(True)
             self.mode_actions.append(imageMode)
             mode_menu.addAction(imageMode)
-        
+
     def _menu_cb(self, action: QAction):
         new_mode = action.text() if action.isChecked() else 'None'
         self.mode = new_mode
@@ -110,4 +112,3 @@ class App(QMainWindow):
         for action in self.mode_actions:
             if action.text() != mode:
                 action.setChecked(False)
-
