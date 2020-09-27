@@ -173,10 +173,10 @@ def embed_to_image(embedded_file: str, cover_file: str, key: str, method: str, e
             return False
         else:
             print('embedding file')
-            cover_img = cover_img.convert('RGB')
             if(method=='lsb'):
                 embed_to_image_lsb(embedded_file, cover_img, key, encrypt, sequential, metadata_binary)
             else:
+                cover_img = cover_img.convert('RGB')
                 embed_to_image_bpcs(embedded_file, cover_img, key, encrypt, sequential, threshold, metadata_binary)
 
 
