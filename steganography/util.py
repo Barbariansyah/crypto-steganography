@@ -106,14 +106,16 @@ def cover_to_blocks(cover_img):
     pixels = [pixels[i * width:(i + 1) * width] for i in range(height)]
 
     #fill up pseudo pixels
-    if len(pixels[0]) % 8 != 0:
-        rem = 8 - len(pixels[0]) % 8
+    if width % 8 != 0:
+        rem = 8 - width % 8
+        width += rem
         for i in range(height):
-            pixels[i].extend([(255, 255, 255, 255) for _ in range(rem)])
-    if len(pixels) % 8 != 0:
-        rem = 8 - len(pixels) % 8
+            pixels[i].extend([(255, 255, 255) for _ in range(rem)])
+    if height % 8 != 0:
+        rem = 8 - height % 8
+        height += rem
         for i in range(rem):
-            pixels.append([(255, 255, 255, 255) for _ in range(width)])
+            pixels.append([(255, 255, 255) for _ in range(width)])
 
     for x in range(0, width, 8):
         for y in range(0, height, 8):
@@ -128,7 +130,7 @@ def block_to_bitplane(block):
     bitplane = [[[0 for _ in range(8)] for _ in range(8)] for _ in range(24)]
     for x in range(8):
         for y in range(8):
-            r, g, b, a = block[y][x]
+            r, g, b = block[y][x]
             pixel_binary = int_to_binary(r) + int_to_binary(g) + int_to_binary(b)
             for idx, c in enumerate(pixel_binary):
                     bitplane[idx][y][x] = int(c)

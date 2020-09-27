@@ -157,7 +157,7 @@ def embed_to_image_bpcs(embedded_file, cover_img, key, encrypt, sequential, thre
     
     stego_img = blocks_to_np_img_array(stego_blocks, width, height)
     stego_img = Image.fromarray(stego_img).convert('RGB')
-    # stego_img.show()
+    stego_img.show()
     return stego_img.tobytes()
 
 def embed_to_image(embedded_file: str, cover_file: str, key: str, method: str, encrypt: bool, sequential: bool, threshold: bool = 0.3):  
@@ -173,6 +173,7 @@ def embed_to_image(embedded_file: str, cover_file: str, key: str, method: str, e
             return False
         else:
             print('embedding file')
+            cover_img = cover_img.convert('RGB')
             if(method=='lsb'):
                 embed_to_image_lsb(embedded_file, cover_img, key, encrypt, sequential, metadata_binary)
             else:
@@ -211,13 +212,6 @@ def extract_from_image(stego_file: str, key: str):
                         binary += str(pix[i] & 1)
     metadata_size = binary_to_int(binary[:16])
     metadata_size, method, encrypt, sequential, threshold, embed_file_size, embed_file_name = binary_to_image_metadata(binary[:metadata_size])
-    print(metadata_size)
-    print(method)
-    print(encrypt)
-    print(sequential)
-    print(threshold)
-    print(embed_file_size)
-    print(embed_file_name)
     if(method=='lsb'):
         extract_from_image_lsb(binary, metadata_size, encrypt, sequential, embed_file_size, embed_file_name, key, width, height)
     else:

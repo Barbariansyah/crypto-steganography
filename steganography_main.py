@@ -109,7 +109,8 @@ if __name__ == "__main__":
     '''
     embed to image bpcs
     '''
-    embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/shorthair.png", key="steganography", method="bpcs", encrypt=True, sequential=True)
+    # embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/shorthair.png", key="steganography", method="bpcs", encrypt=True, sequential=True)
+    embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/cat.bmp", key="steganography", method="bpcs", encrypt=True, sequential=True)
     '''
     comparing images
     '''
