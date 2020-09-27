@@ -212,7 +212,6 @@ def message_blocks_to_bin(message_blocks, conjugation_map, message_length):
         temp = np.array(temp).T
         temp = np.reshape(temp, (64))
         message += ''.join(str(b) for b in temp)
-    print(message)
     return message[:message_length]
 
 def conjugate_block_with_wc(block):

@@ -91,7 +91,6 @@ def embed_to_image_bpcs(embedded_file, cover_img, key, encrypt, sequential, thre
         content = extended_vigenere_encrypter(content, key)
     
     content = bytes_to_bit(content)
-    print(len(content))
 
     blocks = cover_to_blocks(cover_img)
     blocks_width, blocks_height = len(blocks[0]), len(blocks)
@@ -133,7 +132,24 @@ def embed_to_image_bpcs(embedded_file, cover_img, key, encrypt, sequential, thre
                     else:
                         break
     else:
-        print('embedding randomly')
+        seed = seed_generator(key)
+        random.seed(seed)
+        locations = random.sample(range(0, len(message_blocks)), len(message_blocks))
+        for x in range(width_start, blocks_width):
+            if message_pointer >= len(message_blocks):
+                break
+            for y in range(0, blocks_height):
+                if message_pointer >= len(message_blocks):
+                    break
+                for i in range(0, 24):
+                    if message_pointer < len(message_blocks):
+                        if count_bitplane_complexity(blocks[y][x][i]) > threshold:
+                            blocks[y][x][i] = message_blocks[locations[message_pointer]]
+                            message_pointer+=1
+                        else:
+                            continue
+                    else:
+                        break
 
     stego_blocks = [[None for _ in range(blocks_width)] for _ in range(blocks_height)]
     for x in range(blocks_width):
@@ -170,7 +186,6 @@ def embed_to_image(embedded_file: str, cover_file: str, key: str, method: str, e
     with Image.open(resource_path/cover_file) as cover_img:
         width, height = cover_img.size
         cover_capacity_bit, cover_capacity_byte = calculate_image_capacity(width, height)
-        print(cover_img.filename)
         if(embedded_file_size + len(metadata_binary) // 8 + 1 > cover_capacity_byte):
             print('embedded file size is too big for cover capacity')
             return False
@@ -207,9 +222,9 @@ def extract_from_image_bpcs(stego_img, metadata_size, encrypt, sequential, embed
     for y in range(len(blocks)):
         for x in range(len(blocks[y])):
                 blocks[y][x] = block_to_bitplane(blocks[y][x])
-    message_blocks = []
     message_blocks_pointer = 0
     message_blocks_length = math.ceil(embed_file_size * 8 / 64)
+    message_blocks = [None for _ in range(message_blocks_length)]
     if(sequential):
         print('extracting seq')
         for x in range(width_start, blocks_width):
@@ -221,7 +236,7 @@ def extract_from_image_bpcs(stego_img, metadata_size, encrypt, sequential, embed
                 for i in range(0,24):
                     if message_blocks_pointer < message_blocks_length:
                         if count_bitplane_complexity(blocks[y][x][i]) > threshold:
-                            message_blocks.append(blocks[y][x][i])
+                            message_blocks[message_blocks_pointer] = blocks[y][x][i]
                             message_blocks_pointer+=1
                         else:
                             continue
@@ -230,6 +245,26 @@ def extract_from_image_bpcs(stego_img, metadata_size, encrypt, sequential, embed
         message_bin = message_blocks_to_bin(message_blocks, conjugation_map, embed_file_size * 8)
     else:
         print('extracting random')
+        seed = seed_generator(key)
+        random.seed(seed)
+        locations = random.sample(range(0, message_blocks_length), message_blocks_length)
+        for x in range(width_start, blocks_width):
+            if message_blocks_pointer >= message_blocks_length:
+                break
+            for y in range(0, blocks_height):
+                if message_blocks_pointer >= message_blocks_length:
+                    break
+                for i in range(0,24):
+                    if message_blocks_pointer < message_blocks_length:
+                        if count_bitplane_complexity(blocks[y][x][i]) > threshold:
+                            message_blocks[locations[message_blocks_pointer]] = blocks[y][x][i]
+                            message_blocks_pointer+=1
+                        else:
+                            continue
+                    else:
+                        break
+        message_bin = message_blocks_to_bin(message_blocks, conjugation_map, embed_file_size * 8)
+
     content_bytes = bit_to_bytes(message_bin)
     if(encrypt):
         content_bytes = extended_vigenere_decrypter(content_bytes, key)
