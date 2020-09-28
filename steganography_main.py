@@ -15,7 +15,7 @@ if __name__ == "__main__":
     # print(metadata_binary)
     # print(binary_to_float('00111110100110011001100110011010'))
     # print(binary_to_int('0000000010111011'))
-    # print(binary_to_string('0111010001100101011100110111010000101110011100000110111001100111'))
+    # print(binary_to_string('01110110011001010111001001111001001000000111001101101101011000011011011000100010111100101111000000110010000000100100000101100001'))
     # a = b'message'
     # a_bit = bytes_to_bit(a)
     # print(bit_to_bytes(a_bit))
@@ -66,6 +66,8 @@ if __name__ == "__main__":
     # print(bitplane == pbc)
 
     # conjugation = conjugate_block_with_wc(bitplane)
+    # reconjugated = conjugate_block_with_wc(conjugation)
+    # print(bitplane == reconjugated)
     # print(count_bitplane_complexity(conjugation))
 
     # message = '11010011' * 8
@@ -109,7 +111,14 @@ if __name__ == "__main__":
     '''
     embed to image bpcs
     '''
-    embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/shorthair.png", key="steganography", method="bpcs", encrypt=True, sequential=True)
+    # embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/shorthair.png", key="steganography", method="bpcs", encrypt=False, sequential=True)
+    # embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/shorthair.png", key="steganography", method="bpcs", encrypt=False, sequential=True)
+
+    # embed_to_image(embedded_file="steganography/sample_files/bigger.txt", cover_file="steganography/sample_images/cat.bmp", key="steganography", method="bpcs", encrypt=True, sequential=False)
+    
+
+    # embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/shorthair.png", key="steganography", method="bpcs", encrypt=False, sequential=False)
+    # extract_from_image(stego_file="steganography/sample_result/cat.bmp", key="steganography")
     '''
     comparing images
     '''
@@ -119,4 +128,8 @@ if __name__ == "__main__":
     #         for y in range(0, 20):
     #             pix = cover_img.getpixel((x,y))
     #             print(pix)
+
+    with Image.open(resource_path/'sample_images/cat.bmp') as cover_img:
+        with Image.open(resource_path/'sample_result/cat.bmp') as stego_img:
+            print(calculate_psnr(cover_img, stego_img))
     pass

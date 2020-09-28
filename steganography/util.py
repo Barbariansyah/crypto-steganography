@@ -106,14 +106,16 @@ def cover_to_blocks(cover_img):
     pixels = [pixels[i * width:(i + 1) * width] for i in range(height)]
 
     #fill up pseudo pixels
-    if len(pixels[0]) % 8 != 0:
-        rem = 8 - len(pixels[0]) % 8
+    if width % 8 != 0:
+        rem = 8 - width % 8
+        width += rem
         for i in range(height):
-            pixels[i] += [(255, 255, 255, 255) for _ in range(rem)]
-    if len(pixels) % 8 != 0:
-        rem = 8 - len(pixels) % 8
+            pixels[i].extend([(255, 255, 255) for _ in range(rem)])
+    if height % 8 != 0:
+        rem = 8 - height % 8
+        height += rem
         for i in range(rem):
-            pixels.append([(255, 255, 255, 255) for _ in range(width)])
+            pixels.append([(255, 255, 255) for _ in range(width)])
 
     for x in range(0, width, 8):
         for y in range(0, height, 8):
@@ -128,11 +130,33 @@ def block_to_bitplane(block):
     bitplane = [[[0 for _ in range(8)] for _ in range(8)] for _ in range(24)]
     for x in range(8):
         for y in range(8):
-            r, g, b, a = block[y][x]
+            r, g, b = block[y][x]
             pixel_binary = int_to_binary(r) + int_to_binary(g) + int_to_binary(b)
             for idx, c in enumerate(pixel_binary):
                     bitplane[idx][y][x] = int(c)
     return bitplane
+
+def bitplane_to_block(bitplane, depth = 3):
+    block = [[[0 for _ in range(depth)] for _ in range(8)] for _ in range(8)]
+    for x in range(8):
+        for y in range(8):
+            pixel_binary = ''
+            for idx in range(8 * depth):
+                pixel_binary += str(bitplane[idx][y][x])
+            for idx in range(depth):
+                curr_pixel_binary = pixel_binary[idx*8:(idx+1)*8]
+                block[y][x][idx] = binary_to_int(curr_pixel_binary)
+    return block
+
+def blocks_to_np_img_array(blocks, width, height, depth = 3):
+    img_array = [[[0 for _ in range(depth)] for _ in range(width)] for _ in range(height)]
+    for x in range(width):
+        for y in range(height):
+            blocks_x, idx_x = x // 8, x % 8
+            blocks_y, idx_y = y // 8, y % 8
+            for i in range(depth):
+                img_array[y][x][i] = blocks[blocks_y][blocks_x][idx_y][idx_x][i]
+    return np.array(img_array, dtype='uint8')
 
 def bitplane_pbc_to_cgc(bitplane):
     width = len(bitplane[0])
@@ -178,6 +202,18 @@ def message_bin_to_blocks(message):
         blocks.append(temp)
     return blocks
 
+def message_blocks_to_bin(message_blocks, conjugation_map, message_length):
+    message = ''
+    for i, block in enumerate(message_blocks):
+        if conjugation_map[i]==1:
+            temp = conjugate_block_with_wc(block)
+        else:
+            temp = block
+        temp = np.array(temp).T
+        temp = np.reshape(temp, (64))
+        message += ''.join(str(b) for b in temp)
+    return message[:message_length]
+
 def conjugate_block_with_wc(block):
     conjugator = [
         [0,1,0,1,0,1,0,1],
@@ -198,7 +234,7 @@ def conjugate_block_with_wc(block):
 def generate_conjugation_map(message_blocks, threshold):
     conjugation_map = [0 for _ in range(len(message_blocks))]
     for idx, block in enumerate(message_blocks):
-        if count_bitplane_complexity(message_blocks) < threshold:
+        if count_bitplane_complexity(block) < threshold:
             conjugation_map[idx] = 1
             message_blocks[idx] = conjugate_block_with_wc(block)
     return conjugation_map
