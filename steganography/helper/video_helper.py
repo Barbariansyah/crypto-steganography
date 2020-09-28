@@ -18,10 +18,10 @@ def open_video_file(filename: str) -> Tuple[np.array, list]:
         else:
             break
 
-    params.append(cap.get(3))  # width
-    params.append(cap.get(4))  # height
+    params.append(int(cap.get(4)))  # width
+    params.append(int(cap.get(3)))  # height
     params.append(cap.get(5))  # fps
-    params.append(cap.get(7))  # frame count
+    params.append(int(cap.get(7)))  # frame count
 
     cap.release()  # release video capture
 
