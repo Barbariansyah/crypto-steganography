@@ -13,8 +13,10 @@ def embed_to_video(embedded_file: str, cover_video: str, key: str, encrypt: bool
         file_size = len(file_bytes)
 
     # Extract frames from cover_video
-    cover_frames, cover_params = open_video_file(cover_video)
+    cover_frames = open_video_file("embed", cover_video)
+    print(cover_frames)
     # Count maximum cover size
+    cover_params = [0 for i in range(10)]
     cover_frame_width = cover_params[0]
     cover_frame_height = cover_params[1]
     cover_frame_fps = cover_params[2]

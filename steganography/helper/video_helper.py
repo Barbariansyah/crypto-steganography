@@ -1,31 +1,69 @@
 from steganography.util import string_to_binary, binary_to_int, binary_to_string
 import numpy as np
-import cv2
+import ffmpeg
+import os
+import uuid
+import shutil
+import subprocess
+from PIL import Image
 from typing import Tuple
 
 
-def open_video_file(filename: str) -> Tuple[np.array, list]:
-    cap = cv2.VideoCapture(filename)
-    if cap.isOpened() == False:
-        raise Exception('Video file not found')
+def open_video_file(mode: str, filename: str):
+    # Open video file and save as array of image
+    audio_path = 'steganography/sample_video_audio/test.aac'
+    if mode == 'embed':
+        # Get framerate
+        command = ['ffprobe',
+                   '-v', 'error',
+                   '-select_streams', 'v:0',
+                   '-show_entries', 'stream=r_frame_rate',
+                   '-of', 'csv=s=x:p=0',
+                   filename]
+        cmd_out, cmd_error = subprocess.Popen(
+            command, stdout=subprocess.PIPE).communicate()
+        cmd_out = cmd_out.decode()
+        frame_speed, divisor = cmd_out.split("/")
+        framerate = int(frame_speed) / int(divisor)
 
-    frames = []
-    params = []
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if ret:
-            frames.append(frame)
-        else:
-            break
+        # Check and extract audio
+        command = ['ffprobe',
+                   '-i', filename,
+                   '-show_streams',
+                   '-select_streams', 'a',
+                   '-loglevel', 'error'
+                   ]
+        cmd_out, cmd_error = subprocess.Popen(
+            command, stdout=subprocess.PIPE).communicate()
 
-    params.append(int(cap.get(4)))  # width
-    params.append(int(cap.get(3)))  # height
-    params.append(cap.get(5))  # fps
-    params.append(int(cap.get(7)))  # frame count
+        # Extract audio
+        if len(cmd_out) != 0:
+            command = ['ffmpeg',
+                       '-i', filename,
+                       '-y',
+                       audio_path]
+            retcode = subprocess.call(command)
 
-    cap.release()  # release video capture
+    # Get video size
+    command = ['ffprobe',
+               '-v', 'error',
+               '-select_streams', 'v:0',
+               '-show_entries', 'stream=width,height',
+               '-of', 'csv=s=x:p=0',
+               filename]
+    cmd_out, cmd_error = subprocess.Popen(
+        command, stdout=subprocess.PIPE).communicate()
+    cmd_out = cmd_out.decode()
+    cover_width, cover_height = cmd_out.split("x")
 
-    return np.array(frames), params
+    # extract frames
+    out, _ = ffmpeg.input(filename).output(
+        'pipe:', format='rawvideo', pix_fmt='rgb24').run(capture_stdout=True)
+
+    frames = np.frombuffer(out, np.uint8).reshape(
+        [-1, int(cover_height), int(cover_width), 3])
+    
+    return frames
 
 
 def video_metadata_to_binary(encrypt: bool, sequential_bytes: bool, sequential_frames: bool, file_size: int, file_name: str) -> str:
