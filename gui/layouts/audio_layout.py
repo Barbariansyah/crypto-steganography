@@ -111,6 +111,7 @@ class AudioEncodeWidget(QWidget):
             return
 
         _, file_name = path.split(self.cover_full_path)
+        self.original_file_name = file_name
         self.button_load_cover.setText(f'Chosen audio: {file_name}')
 
     def _open_embedded_file(self):
@@ -124,25 +125,36 @@ class AudioEncodeWidget(QWidget):
 
     def _save_stego_audio(self):
         stego_full_path = save_file(
-            self, 'Chose save location', '', FILE_TYPE_FILTER['Audio'])
+            self, 'Chose save location', self.original_file_name, FILE_TYPE_FILTER['Audio'])
+        if stego_full_path is None:
+            return
+        
         save_audio(self.stego_audio, self.stego_audio_params, stego_full_path)
 
     def _steganify(self):
-        self.stego_audio, self.stego_audio_params, psnr_value = embed_to_audio(
-            self.embed_full_path,
-            self.cover_full_path,
-            self.textbox_key.text(),
-            self.encrypt,
-            self.sequential
-        )
-        self.button_save_stego.setDisabled(False)
+        try:
+            self.stego_audio, self.stego_audio_params, psnr_value = embed_to_audio(
+                self.embed_full_path,
+                self.cover_full_path,
+                self.textbox_key.text(),
+                self.encrypt,
+                self.sequential
+            )
+            self.button_save_stego.setDisabled(False)
 
-        message = QMessageBox(
-            QMessageBox.NoIcon,
-            'Steganify',
-            f'File succesfully embedded with PSNR {psnr_value}'
-        )
-        message.exec()
+            message = QMessageBox(
+                QMessageBox.NoIcon,
+                'Steganify',
+                f'File succesfully embedded with PSNR {psnr_value}'
+            )
+            message.exec()
+        except Exception as e:
+            message = QMessageBox(
+                QMessageBox.Critical,
+                'Steganify',
+                'Embedded file size is too big for cover capacity'
+            )
+            message.exec()
 
     def _encrypt_choice_cb(self, state: QRadioButton):
         self.encrypt = True if state.text() == 'With encryption' else False
@@ -205,18 +217,29 @@ class AudioDecodeWidget(QWidget):
     def _save_extracted_file(self):
         full_path = save_file(self, 'Save extracted file',
                               self.embed_file_name, FILE_TYPE_FILTER['Any'])
+        if full_path is None:
+            return        
+
         save_bytes_to_file(self.embed_bytes, full_path)
 
     def _desteganify(self):
-        self.embed_bytes, self.embed_file_name = extract_from_audio(
-            self.stego_full_path,
-            self.textbox_key.text()
-        )
-        self.button_save_extracted.setDisabled(False)
+        try:
+            self.embed_bytes, self.embed_file_name = extract_from_audio(
+                self.stego_full_path,
+                self.textbox_key.text()
+            )
+            self.button_save_extracted.setDisabled(False)
 
-        message = QMessageBox(
-            QMessageBox.NoIcon,
-            'Desteganify',
-            f'Successfully extracted {self.embed_file_name}'
-        )
-        message.exec()
+            message = QMessageBox(
+                QMessageBox.NoIcon,
+                'Desteganify',
+                f'Successfully extracted {self.embed_file_name}'
+            )
+            message.exec()
+        except:
+            message = QMessageBox(
+                QMessageBox.Critical,
+                'Desteganify',
+                'Failed to extract embedded file'
+            )
+            message.exec()

@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from os import path
 from gui.common import FILE_TYPE_FILTER, IMAGE_DIM, IMAGE_MIN_DIM, open_file, save_file
-from steganography import embed_to_image, extract_from_image
+from steganography import embed_to_image, extract_from_image, save_image, save_bytes_to_file
 
 
 class ImageEncodeWidget(QWidget):
@@ -174,6 +174,7 @@ class ImageEncodeWidget(QWidget):
             return
 
         _, file_name = path.split(self.cover_full_path)
+        self.original_file_name = file_name
         self.cover_image = QPixmap(self.cover_full_path)
 
         self.button_load_cover.setText(f'Chosen image: {file_name}')
@@ -188,30 +189,47 @@ class ImageEncodeWidget(QWidget):
         _, file_name = path.split(self.embed_full_path)
         self.button_load_embed.setText(f'Chosen file: {file_name}')
 
+    def _update_stego_image(self):
+        stego_image_qpixmap = QPixmap()
+        stego_image_qpixmap.loadFromData(self.stego_image)
+        self.stego_image = stego_image_qpixmap
+        self.button_save_stego.setDisabled(False)
+        self.image_r.setPixmap(self.stego_image)
+
     def _save_stego_image(self):
-        # TODO: Save file outside embed function
         full_path = save_file(self, 'Chose save location',
-                              '', FILE_TYPE_FILTER['Image'])
-        print(full_path)
+                              self.original_file_name, FILE_TYPE_FILTER['Any'])
+        if full_path is None:
+            return
+
+        save_image(self.stego_image_pil, full_path)
 
     def _steganify(self):
-        # TODO: Return image and psnr value
-        embed_to_image(
-            self.embed_full_path,
-            self.cover_full_path,
-            self.textbox_key.text(),
-            self.method,
-            self.encrypt,
-            self.sequential,
-            float(self.textbox_threshold.text())
-        )
+        try:
+            self.stego_image, self.stego_image_pil, psnr = embed_to_image(
+                self.embed_full_path,
+                self.cover_full_path,
+                self.textbox_key.text(),
+                self.method,
+                self.encrypt,
+                self.sequential,
+                float(self.textbox_threshold.text())
+            )
+            self._update_stego_image()
 
-        message = QMessageBox(
-            QMessageBox.NoIcon,
-            'Steganify',
-            f'File succesfully embedded with PSNR ???'
-        )
-        message.exec()
+            message = QMessageBox(
+                QMessageBox.NoIcon,
+                'Steganify',
+                f'File succesfully embedded with PSNR {psnr:0.2f} dB'
+            )
+            message.exec()
+        except Exception as e:
+            message = QMessageBox(
+                QMessageBox.Critical,
+                'Steganify',
+                'Embedded file size is too big for cover capacity'
+            )
+            message.exec()
 
     def _encrypt_choice_cb(self, state: QRadioButton):
         self.encrypt = True if state.text() == 'With encryption' else False
@@ -243,7 +261,7 @@ class ImageDecodeWidget(QWidget):
         h_frame_layout.addWidget(self.button_load_stego)
 
         self.button_save_extracted = QPushButton('Save extracted file', self)
-        self.button_save_extracted.clicked.connect(self._save_extracted_image)
+        self.button_save_extracted.clicked.connect(self._save_extacted_file)
         self.button_save_extracted.setDisabled(True)
         h_frame_layout.addWidget(self.button_save_extracted)
 
@@ -273,18 +291,29 @@ class ImageDecodeWidget(QWidget):
         _, file_name = path.split(self.stego_full_path)
         self.button_load_stego.setText(f'Chosen image: {file_name}')
 
-    def _save_extracted_image(self):
-        # TODO: Save file outside embed function
+    def _save_extacted_file(self):
         full_path = save_file(self, 'Save extracted file',
-                              '', FILE_TYPE_FILTER['Any'])
-        print(full_path)
+                              self.embed_file_name, FILE_TYPE_FILTER['Any'])
+        if full_path is None:
+            return
+        
+        save_bytes_to_file(self.embed_bytes, full_path)
 
     def _desteganify(self):
-        # TODO: Return extracted file and psnr value
-        extract_from_image(self.stego_full_path, self.textbox_key.text())
-        message = QMessageBox(
-            QMessageBox.NoIcon,
-            'Desteganify',
-            'Successfully extracted'
-        )
-        message.exec()
+        try:
+            self.embed_bytes, self.embed_file_name = extract_from_image(self.stego_full_path, self.textbox_key.text())
+            self.button_save_extracted.setDisabled(False)
+
+            message = QMessageBox(
+                QMessageBox.NoIcon,
+                'Desteganify',
+                'Successfully extracted'
+            )
+            message.exec()
+        except:
+            message = QMessageBox(
+                QMessageBox.Critical,
+                'Desteganify',
+                'Failed to extract embedded file'
+            )
+            message.exec()
