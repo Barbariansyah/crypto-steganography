@@ -1,17 +1,11 @@
 from PIL import Image
-from pathlib import Path
+from typing import Tuple, List
+from io import BytesIO
 from steganography.util import *
 from steganography.cipher.vigenere import extended_vigenere_encrypter, extended_vigenere_decrypter
 import math
 
-resource_path = Path('./')
-destination_path = Path('./steganography/sample_result')
-
-'''
-pixel contains r, g, b, a value in integer
-'''
-
-def embed_to_image_lsb(embedded_file: str, cover_img, key: str, encrypt: bool, sequential: bool, metadata_binary: str):
+def embed_to_image_lsb(embedded_file: str, cover_img: Image.Image, key: str, encrypt: bool, sequential: bool, metadata_binary: str) -> Tuple[bytes, Image.Image]:
     width, height = cover_img.size
     with open(embedded_file, 'rb') as f:
         content = f.read()
@@ -25,7 +19,6 @@ def embed_to_image_lsb(embedded_file: str, cover_img, key: str, encrypt: bool, s
     embedded_message = metadata_binary + content
     total_length = len(embedded_message)
     if(sequential):
-        print('embedding sequentially')
         for x in range(0, width):
             if pointer >= total_length:
                 break
@@ -41,10 +34,8 @@ def embed_to_image_lsb(embedded_file: str, cover_img, key: str, encrypt: bool, s
                     else:
                         break
                 cover_img.putpixel((x,y), tuple(pix))
-        cover_img.save(destination_path/get_file_name_from_path(cover_img.filename))
     else:
         metadata_length = len(metadata_binary)
-        print('embedding randomly')
         seed = seed_generator(key)
         location = random_unique_location(metadata_length, len(content), seed, width*height*3)
         
@@ -74,10 +65,14 @@ def embed_to_image_lsb(embedded_file: str, cover_img, key: str, encrypt: bool, s
             pix = list(pix)
             pix[i] = pix[i] & ~1 | int(content[idx])
             cover_img.putpixel((x,y), tuple(pix))
-        
-        cover_img.save(destination_path/get_file_name_from_path(cover_img.filename))
+    
+    with BytesIO() as output:
+        cover_img.save(output, 'BMP')
+        cover_img_bytes = output.getvalue()
+
+    return cover_img_bytes, cover_img
                 
-def embed_to_image_bpcs(embedded_file, cover_img, key, encrypt, sequential, threshold, metadata_binary):
+def embed_to_image_bpcs(embedded_file: str, cover_img: Image.Image, key: str, encrypt: bool, sequential: bool, threshold: float, metadata_binary: str) -> Tuple[bytes, Image.Image]:
     width, height = cover_img.size
     cover_img_filename = cover_img.filename
 
@@ -174,33 +169,33 @@ def embed_to_image_bpcs(embedded_file, cover_img, key, encrypt, sequential, thre
                     break
             stego_img.putpixel((x,y), tuple(pix))
     
-    # # stego_img.show()
-    # return stego_img.tobytes()
-    stego_img.save(destination_path/get_file_name_from_path(cover_img_filename))
+    with BytesIO() as output:
+        stego_img.save(output, 'BMP')
+        stego_img_bytes = output.getvalue()
 
-def embed_to_image(embedded_file: str, cover_file: str, key: str, method: str, encrypt: bool, sequential: bool, threshold: bool = 0.3):  
+    return stego_img_bytes, stego_img
+
+def embed_to_image(embedded_file: str, cover_file: str, key: str, method: str, encrypt: bool, sequential: bool, threshold: float = 0.3) -> Tuple[bytes, Image.Image, float]:  
     embedded_file_size = get_file_size(embedded_file)
     embedded_file_name = get_file_name_from_path(embedded_file)
     metadata_binary = image_metadata_to_binary(method, encrypt, sequential, threshold, embedded_file_size, embedded_file_name)
-    with Image.open(resource_path/cover_file) as cover_img:
-        width, height = cover_img.size
-        cover_capacity_bit, cover_capacity_byte = calculate_image_capacity(width, height)
+    with Image.open(cover_file) as cover_img:
+        original = cover_img.copy()
+        cover_capacity_bit, cover_capacity_byte = calculate_image_capacity(cover_img, method, threshold)
         if(embedded_file_size + len(metadata_binary) // 8 + 1 > cover_capacity_byte):
-            print('embedded file size is too big for cover capacity')
-            return False
+            raise Exception('embedded file size is too big for cover capacity')
         else:
-            print('embedding file')
             if(method=='lsb'):
-                embed_to_image_lsb(embedded_file, cover_img, key, encrypt, sequential, metadata_binary)
+                stego_img_bytes, stego_img = embed_to_image_lsb(embedded_file, cover_img, key, encrypt, sequential, metadata_binary)
             else:
-                embed_to_image_bpcs(embedded_file, cover_img, key, encrypt, sequential, threshold, metadata_binary)
+                stego_img_bytes, stego_img = embed_to_image_bpcs(embedded_file, cover_img, key, encrypt, sequential, threshold, metadata_binary)
+        psnr = calculate_psnr(original, stego_img)
+    return stego_img_bytes, stego_img, psnr
 
-def extract_from_image_lsb(binary, metadata_size, encrypt, sequential, embed_file_size, embed_file_name, key, cover_width, cover_height):
+def extract_from_image_lsb(binary: str, metadata_size: int, encrypt: bool, sequential: bool, embed_file_size: int, key: str, cover_width: int, cover_height: int) -> bytes:
     if sequential :
-        print('extracting seq')
         content_binary = binary[metadata_size:metadata_size+embed_file_size*8]
     else:
-        print('extracting random')
         location = random_unique_location(metadata_size, embed_file_size*8, seed_generator(key), cover_width*cover_height*3)
         content_binary = ''
         for loc in location:
@@ -208,10 +203,9 @@ def extract_from_image_lsb(binary, metadata_size, encrypt, sequential, embed_fil
     content_bytes = bit_to_bytes(content_binary)
     if(encrypt):
         content_bytes = extended_vigenere_decrypter(content_bytes, key)
-    with open(destination_path/embed_file_name, 'wb+') as f:
-        f.write(content_bytes)
+    return content_bytes
 
-def extract_from_image_bpcs(stego_img, metadata_size, encrypt, sequential, embed_file_size, embed_file_name, key, width, height, conjugation_map, threshold):
+def extract_from_image_bpcs(stego_img: Image.Image, metadata_size: int, encrypt: bool, sequential: bool, embed_file_size: int, key: str, width: int, height: int, conjugation_map: List[int], threshold: float = 0.3) -> bytes:
     width_start = math.ceil(math.ceil(math.ceil(metadata_size / 3) / height) / 8)
     blocks = cover_to_blocks(stego_img)
     blocks_width, blocks_height = len(blocks[0]), len(blocks)
@@ -223,7 +217,6 @@ def extract_from_image_bpcs(stego_img, metadata_size, encrypt, sequential, embed
     message_blocks_length = math.ceil(embed_file_size * 8 / 64)
     message_blocks = [None for _ in range(message_blocks_length)]
     if(sequential):
-        print('extracting seq')
         for x in range(width_start, blocks_width):
             if message_blocks_pointer >= message_blocks_length:
                 break
@@ -241,7 +234,6 @@ def extract_from_image_bpcs(stego_img, metadata_size, encrypt, sequential, embed
                         break
         message_bin = message_blocks_to_bin(message_blocks, conjugation_map, embed_file_size * 8)
     else:
-        print('extracting random')
         seed = seed_generator(key)
         random.seed(seed)
         locations = random.sample(range(0, message_blocks_length), message_blocks_length)
@@ -265,12 +257,11 @@ def extract_from_image_bpcs(stego_img, metadata_size, encrypt, sequential, embed
     content_bytes = bit_to_bytes(message_bin)
     if(encrypt):
         content_bytes = extended_vigenere_decrypter(content_bytes, key)
-    with open(destination_path/embed_file_name, 'wb+') as f:
-        f.write(content_bytes)
+    return content_bytes
 
-def extract_from_image(stego_file: str, key: str):
+def extract_from_image(stego_file: str, key: str) -> Tuple[bytes, str]:
     binary = ''
-    with Image.open(resource_path/stego_file) as stego_img:
+    with Image.open(stego_file) as stego_img:
         width, height = stego_img.size
         for x in range(0, width):
             for y in range(0, height):
@@ -281,13 +272,14 @@ def extract_from_image(stego_file: str, key: str):
     metadata_size = binary_to_int(binary[:16])
     metadata_size, method, encrypt, sequential, threshold, embed_file_size, embed_file_name = binary_to_image_metadata(binary[:metadata_size])
     if(method=='lsb'):
-        extract_from_image_lsb(binary, metadata_size, encrypt, sequential, embed_file_size, embed_file_name, key, width, height)
+        content_bytes = extract_from_image_lsb(binary, metadata_size, encrypt, sequential, embed_file_size, key, width, height)
     else:
         conjugation_map_length = binary_to_int(binary[metadata_size:metadata_size+32])
         conjugation_map = [ int(i) for i in binary[metadata_size+32:metadata_size+32+conjugation_map_length] ]
-        extract_from_image_bpcs(stego_img, metadata_size+32+conjugation_map_length, encrypt, sequential, embed_file_size, embed_file_name, key, width, height, conjugation_map, threshold)
+        content_bytes = extract_from_image_bpcs(stego_img, metadata_size+32+conjugation_map_length, encrypt, sequential, embed_file_size, key, width, height, conjugation_map, threshold)
+    return content_bytes, embed_file_name
 
-def calculate_psnr(cover_img, stego_img):
+def calculate_psnr(cover_img: Image.Image, stego_img: Image.Image) -> float:
     width, height = cover_img.size
     r_se, g_se, b_se = 0, 0, 0
     for x in range(0, width):
@@ -305,3 +297,6 @@ def calculate_psnr(cover_img, stego_img):
     mse = (r_mse + g_mse + b_mse) / 3
     psnr = 10 * math.log(((255 ** 2) / mse), 10)
     return psnr
+
+def save_image(image: Image.Image, path: str):
+    image.save(path)

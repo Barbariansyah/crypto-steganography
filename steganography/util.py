@@ -1,12 +1,9 @@
-from pathlib import Path
+from bitarray import bitarray
+import numpy as np
 import os
 import struct
-from bitarray import bitarray
 import random
 import math
-import numpy as np
-
-root_path = Path('./')
 
 ''' Common Utility '''
 def seed_generator(key):
@@ -29,19 +26,33 @@ def bit_to_bytes(bit_input):
     temp = bitarray(bit_input)
     return temp.tobytes()
 
-def calculate_image_capacity(width, height):
-    bit_capacity = width * height * 3
-    byte_capacity = bit_capacity // 8
+def calculate_image_capacity(cover_img, method, threshold = 0.3):
+    if method == 'lsb':
+        width, height = cover_img.size
+        bit_capacity = width * height * 3
+        byte_capacity = bit_capacity // 8
+    else:
+        cover_img_conv = cover_img.convert('RGB')
+
+        blocks = cover_to_blocks(cover_img_conv)
+        blocks_width, blocks_height = len(blocks[0]), len(blocks)
+        for x in range(blocks_width):
+            for y in range(blocks_height):
+                    blocks[y][x] = block_to_bitplane(blocks[y][x])
+        blocks_depth = len(blocks[0][0])
+
+        bit_capacity = 0
+        for x in range(blocks_width):
+            for y in range(blocks_height):
+                for i in range(blocks_depth):
+                    if count_bitplane_complexity(blocks[y][x][i]) > threshold:
+                        bit_capacity += 64 
+        byte_capacity = bit_capacity // 8
+
     return bit_capacity, byte_capacity
 
-def handle_ascii_file(file):
-    # filename = secure_filename(file.filename)
-    file_content = file.read()
-    # return filename, file_content
-    return file_content
-
 def get_file_size(file_name):
-    return os.stat(root_path/file_name).st_size
+    return os.stat(file_name).st_size
 
 def int_to_binary(integer):
     return format(integer, '08b')
