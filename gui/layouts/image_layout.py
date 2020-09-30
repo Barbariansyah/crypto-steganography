@@ -307,7 +307,7 @@ class ImageDecodeWidget(QWidget):
             message = QMessageBox(
                 QMessageBox.NoIcon,
                 'Desteganify',
-                'Successfully extracted'
+                f'Successfully extracted {self.embed_file_name}'
             )
             message.exec()
         except:
