@@ -69,10 +69,10 @@ def embed_to_video(embedded_file: str, cover_video: str, key: str, encrypt: bool
             for i in range(cover_frame_count):
                 if pointer >= metadata_length:
                     break
-                for j in range(cover_frame_height):
+                for j in range(cover_frame_width):
                     if pointer >= metadata_length:
                         break
-                    for k in range(cover_frame_width):
+                    for k in range(cover_frame_height):
                         if pointer >= metadata_length:
                             break
                         for l in range(cover_frame_depth):
@@ -83,16 +83,21 @@ def embed_to_video(embedded_file: str, cover_video: str, key: str, encrypt: bool
                             else:
                                 break
 
+            # Max capacity frame
+            max_capacity_frame = cover_frame_height * cover_frame_width * cover_frame_depth
+
             # Create random
             random_loc = random_unique_location(
-                metadata_length, len(file_bits), seed_generator(key), cover_frame_height*cover_frame_width*cover_frame_depth)
+                metadata_length, len(file_bits), seed_generator(
+                    key), max_capacity_frame*((len(file_bits) // max_capacity_frame)+1))
 
             # Embedding message
             for idx, loc in enumerate(random_loc):
-                x, rem = divmod(loc, cover_frame_height*3)
-                y, rem = divmod(rem, 3)
+                x, rem_frame = divmod(loc, max_capacity_frame)
+                y, rem = divmod(rem_frame, cover_frame_height*3)
+                z, rem = divmod(rem, 3)
                 i = rem
-                cover_frames[0][x][y][i] = cover_frames[0][x][y][i] & ~1 | int(
+                cover_frames[x][y][z][i] = cover_frames[x][y][z][i] & ~1 | int(
                     file_bits[idx])
     else:
         if sequential_bytes:
@@ -115,24 +120,28 @@ def embed_to_video(embedded_file: str, cover_video: str, key: str, encrypt: bool
                             else:
                                 break
 
+            # Max capacity frame
+            max_capacity_frame = cover_frame_height * cover_frame_width * cover_frame_depth
+
             # Create random
             random_loc = random_unique_location(
-                metadata_length, len(file_bits), seed_generator(key), cover_frame_count)
+                1, (len(file_bits) // max_capacity_frame)+1, seed_generator(
+                    key), cover_frame_count)
 
             # Embedding message
             pointer = 0
-            total_length = len(embedded_message)
+            total_length = len(file_bits)
             for _, loc in enumerate(random_loc):
-                for j in range(cover_frame_height):
+                for j in range(cover_frame_width):
                     if pointer >= total_length:
                         break
-                    for k in range(cover_frame_width):
+                    for k in range(cover_frame_height):
                         if pointer >= total_length:
                             break
                         for l in range(cover_frame_depth):
                             if pointer < total_length:
                                 cover_frames[loc][j][k][l] = cover_frames[loc][j][k][l] & ~1 | int(
-                                    embedded_message[pointer])
+                                    file_bits[pointer])
                                 pointer += 1
                             else:
                                 break
@@ -143,10 +152,10 @@ def embed_to_video(embedded_file: str, cover_video: str, key: str, encrypt: bool
             for i in range(cover_frame_count):
                 if pointer >= metadata_length:
                     break
-                for j in range(cover_frame_height):
+                for j in range(cover_frame_width):
                     if pointer >= metadata_length:
                         break
-                    for k in range(cover_frame_width):
+                    for k in range(cover_frame_height):
                         if pointer >= metadata_length:
                             break
                         for l in range(cover_frame_depth):
@@ -157,27 +166,21 @@ def embed_to_video(embedded_file: str, cover_video: str, key: str, encrypt: bool
                             else:
                                 break
 
+            # Max capacity frame
+            max_capacity_frame = cover_frame_height * cover_frame_width * cover_frame_depth
+
             # Create random
             random_pixel_loc = random_unique_location(
-                metadata_length, len(file_bits), seed_generator(key), cover_frame_height*cover_frame_width*cover_frame_depth)
-            random_frame_loc = random_unique_location(
-                metadata_length, len(file_bits), seed_generator(key), cover_frame_count)
+                metadata_length, len(file_bits), seed_generator(key), max_capacity_frame*cover_frame_count)
 
             # Embedding message
-            pointer = 0
-            total_length = len(embedded_message)
-            for _, frame_loc in enumerate(random_frame_loc):
-                for _, pixel_loc in enumerate(random_pixel_loc):
-                    for j in range(cover_frame_height):
-                        if pointer >= total_length:
-                            break
-                        for l in range(cover_frame_depth):
-                            if pointer < total_length:
-                                cover_frames[frame_loc][j][k][l] = cover_frames[frame_loc][j][k][l] & ~1 | int(
-                                    embedded_message[pointer])
-                                pointer += 1
-                            else:
-                                break
+            for idx, loc in enumerate(random_pixel_loc):
+                x, rem_frame = divmod(loc, max_capacity_frame)
+                y, rem = divmod(rem_frame, cover_frame_height*3)
+                z, rem = divmod(rem, 3)
+                i = rem
+                cover_frames[x][y][z][i] = cover_frames[x][y][z][i] & ~1 | int(
+                    file_bits[idx])
 
     # TODO: PSNR
     return cover_frames, cover_params, 0
@@ -188,6 +191,7 @@ def extract_from_video(stego_video: str, key: str) -> Tuple[bytes, str]:
     cover_frames, cover_params = open_video_file(stego_video)
     cover_frame_width = cover_params[0]
     cover_frame_height = cover_params[1]
+    cover_frame_count = cover_params[3]
     cover_frame_depth = 3
 
     # Extract LSB
@@ -210,12 +214,62 @@ def extract_from_video(stego_video: str, key: str) -> Tuple[bytes, str]:
                 loc = size + idx
                 file_bits += str(lsbs[loc])
         else:
-            pass
+            # Max capacity frame
+            max_capacity_frame = cover_frame_height * cover_frame_width * cover_frame_depth
+
+            # Create random
+            random_loc = random_unique_location(
+                size, file_size_bit, seed_generator(
+                    key), max_capacity_frame*((file_size_bit // max_capacity_frame)+1))
+
+            # Embedding message
+            for idx, loc in enumerate(random_loc):
+                x, rem_frame = divmod(loc, max_capacity_frame)
+                y, rem = divmod(rem_frame, cover_frame_height*3)
+                z, rem = divmod(rem, 3)
+                i = rem
+                file_bits += str(cover_frames[x][y][z][i] & 1)
     else:
         if sequential_bytes:
-            pass
+            # Max capacity frame
+            max_capacity_frame = cover_frame_height * cover_frame_width * cover_frame_depth
+
+            # Create random
+            random_loc = random_unique_location(
+                1, ((file_size_bit) // max_capacity_frame)+1, seed_generator(
+                    key), cover_frame_count)
+
+            # Embedding message
+            pointer = 0
+            total_length = file_size_bit
+            for _, loc in enumerate(random_loc):
+                for j in range(cover_frame_width):
+                    if pointer >= total_length:
+                        break
+                    for k in range(cover_frame_height):
+                        if pointer >= total_length:
+                            break
+                        for l in range(cover_frame_depth):
+                            if pointer < total_length:
+                                file_bits += str(cover_frames[loc][j][k][l] & 1)
+                                pointer += 1
+                            else:
+                                break
         else:
-            pass
+            # Max capacity frame
+            max_capacity_frame = cover_frame_height * cover_frame_width * cover_frame_depth
+
+            # Create random
+            random_pixel_loc = random_unique_location(
+                size, file_size_bit, seed_generator(key), max_capacity_frame*cover_frame_count)
+
+            # Embedding message
+            for idx, loc in enumerate(random_pixel_loc):
+                x, rem_frame = divmod(loc, max_capacity_frame)
+                y, rem = divmod(rem_frame, cover_frame_height*3)
+                z, rem = divmod(rem, 3)
+                i = rem
+                file_bits += str(cover_frames[x][y][z][i] & 1)
 
     file_bytes = bit_to_bytes(file_bits)
 
