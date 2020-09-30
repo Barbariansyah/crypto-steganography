@@ -4,6 +4,7 @@ from typing import Tuple, List
 from steganography.util import get_file_name_from_path, random_unique_location, seed_generator, bytes_to_bit, bit_to_bytes, binary_to_int
 from steganography.cipher.vigenere import extended_vigenere_encrypter, extended_vigenere_decrypter
 from steganography.helper.video_helper import open_video_file, video_metadata_to_binary, binary_to_video_metadata
+import skvideo.io
 
 
 def embed_to_video(embedded_file: str, cover_video: str, key: str, encrypt: bool, sequential_bytes: bool, sequential_frames: bool) -> Tuple[np.array, tuple]:
@@ -49,10 +50,10 @@ def embed_to_video(embedded_file: str, cover_video: str, key: str, encrypt: bool
             for i in range(cover_frame_count):
                 if pointer >= total_length:
                     break
-                for j in range(cover_frame_height):
+                for j in range(cover_frame_width):
                     if pointer >= total_length:
                         break
-                    for k in range(cover_frame_width):
+                    for k in range(cover_frame_height):
                         if pointer >= total_length:
                             break
                         for l in range(cover_frame_depth):
@@ -206,7 +207,7 @@ def extract_from_video(stego_video: str, key: str) -> Tuple[bytes, str]:
     if sequential_frames:
         if sequential_bytes:
             for idx in range(file_size_bit):
-                loc = metadata_size + idx
+                loc = size + idx
                 file_bits += str(lsbs[loc])
         else:
             pass
@@ -230,14 +231,16 @@ def save_video(content: List[np.array], params: tuple, path: str):
     cover_frame_height = params[1]
     cover_frame_fps = params[2]
 
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    out = cv2.VideoWriter(path, fourcc, cover_frame_fps,
-                          (cover_frame_height, cover_frame_width))
+    writer = skvideo.io.FFmpegWriter(path, outputdict={
+        '-vcodec': 'ffv1',  # use the h.264 codec
+        '-crf': '0',  # set the constant rate factor to 0, which is lossless
+        '-preset': 'veryslow'
+    })
 
     for frame in content:
-        out.write(frame)
+        writer.writeFrame(frame[:, :, ::-1])
 
-    out.release()
+    writer.close()
 
 
 def play_video(filename: str):
