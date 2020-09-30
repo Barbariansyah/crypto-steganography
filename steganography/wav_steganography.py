@@ -1,5 +1,7 @@
 import wave
+import math
 from typing import Tuple
+from copy import deepcopy
 from steganography.helper import wav_helper
 from steganography.util import get_file_name_from_path, random_unique_location, seed_generator, bytes_to_bit, bit_to_bytes
 from steganography.cipher.vigenere import extended_vigenere_encrypter, extended_vigenere_decrypter
@@ -15,6 +17,7 @@ def embed_to_audio(embedded_file: str, cover_audio: str, key: str, encrypt: bool
         sample_size = w.getnframes()
         sample_params = w.getparams()
         samples = [b for b in w.readframes(sample_size)]
+        samples_og = deepcopy(samples)
 
     file_name = get_file_name_from_path(embedded_file)
     metadata_bin = wav_helper.audio_metadata_to_binary(
@@ -47,8 +50,8 @@ def embed_to_audio(embedded_file: str, cover_audio: str, key: str, encrypt: bool
             ibit = int(bit)
             samples[loc] = (samples[loc] & ~1) | ibit
 
-    # TODO: Return PSNR value
-    return bytes(samples), sample_params, 0
+    psnr = calculate_psnr(samples_og, samples)
+    return bytes(samples), sample_params, psnr
 
 
 def extract_from_audio(stego_audio: str, key: str) -> Tuple[bytes, str]:
@@ -91,3 +94,11 @@ def save_audio(content: bytes, params: tuple, path: str):
     with wave.open(path, 'wb') as n:
         n.setparams(params)
         n.writeframes(content)
+
+def calculate_psnr(original_samples: list, stego_samples: list) -> float:
+    sse = 0
+    for og_sample, steg_sample in zip(original_samples, stego_samples):
+        sse += (og_sample - steg_sample) ** 2
+    rms = (sse / len(original_samples)) ** (1/2)
+    psnr = 20 * math.log10(255 / rms)
+    return psnr
