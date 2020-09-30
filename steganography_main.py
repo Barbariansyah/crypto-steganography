@@ -97,7 +97,7 @@ if __name__ == "__main__":
     '''
     embed to image lsb
     '''
-    # embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/shorthair.png", key="steganography", method="lsb", encrypt=False, sequential=True)
+    # embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/sea.png", key="steganography", method="lsb", encrypt=True, sequential=True)
     # extract_from_image(stego_file="steganography/sample_result/shorthair.png", key="steganography")
 
     # embed_to_image(embedded_file="steganography/sample_files/small.txt", cover_file="steganography/sample_images/shorthair.png", key="steganography", method="lsb", encrypt=False, sequential=False)
@@ -129,7 +129,7 @@ if __name__ == "__main__":
     #             pix = cover_img.getpixel((x,y))
     #             print(pix)
 
-    with Image.open(resource_path/'sample_images/cat.bmp') as cover_img:
-        with Image.open(resource_path/'sample_result/cat.bmp') as stego_img:
-            print(calculate_psnr(cover_img, stego_img))
-    pass
+    # with Image.open(resource_path/'sample_images/cat.bmp') as cover_img:
+    #     with Image.open(resource_path/'sample_result/cat.bmp') as stego_img:
+    #         print(calculate_psnr(cover_img, stego_img))
+    # pass
