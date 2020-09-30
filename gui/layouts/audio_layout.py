@@ -145,7 +145,7 @@ class AudioEncodeWidget(QWidget):
             message = QMessageBox(
                 QMessageBox.NoIcon,
                 'Steganify',
-                f'File succesfully embedded with PSNR {psnr_value}'
+                f'File succesfully embedded with PSNR {psnr_value:0.2f} dB'
             )
             message.exec()
         except Exception as e:
