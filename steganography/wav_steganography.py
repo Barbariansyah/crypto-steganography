@@ -14,9 +14,10 @@ def embed_to_audio(embedded_file: str, cover_audio: str, key: str, encrypt: bool
         file_size = len(file_bytes)
 
     with wave.open(cover_audio, 'rb') as w:
-        sample_size = w.getnframes()
+        frame_count = w.getnframes()
         sample_params = w.getparams()
-        samples = [b for b in w.readframes(sample_size)]
+        samples = [b for b in w.readframes(frame_count)]
+        sample_size = len(samples)
         samples_og = deepcopy(samples)
 
     file_name = get_file_name_from_path(embedded_file)
@@ -57,8 +58,9 @@ def embed_to_audio(embedded_file: str, cover_audio: str, key: str, encrypt: bool
 def extract_from_audio(stego_audio: str, key: str) -> Tuple[bytes, str]:
     # Load files and do checks
     with wave.open(stego_audio, 'rb') as w:
-        sample_size = w.getnframes()
-        stego_samples = [b for b in w.readframes(sample_size)]
+        frame_size = w.getnframes()
+        stego_samples = [b for b in w.readframes(frame_size)]
+        sample_size = len(stego_samples)
 
     # Extract lsb
     lsbs = ''
@@ -95,10 +97,10 @@ def save_audio(content: bytes, params: tuple, path: str):
         n.setparams(params)
         n.writeframes(content)
 
-def calculate_psnr(original_samples: list, stego_samples: list) -> float:
+def calculate_psnr(original_bytes: list, stego_bytes: list) -> float:
     sse = 0
-    for og_sample, steg_sample in zip(original_samples, stego_samples):
-        sse += (og_sample - steg_sample) ** 2
-    rms = (sse / len(original_samples)) ** (1/2)
+    for og_byte, stego_byte in zip(original_bytes, stego_bytes):
+        sse += (og_byte - stego_byte) ** 2
+    rms = (sse / len(original_bytes)) ** (1/2)
     psnr = 20 * math.log10(255 / rms)
     return psnr
