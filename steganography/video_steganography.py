@@ -37,7 +37,7 @@ def embed_to_video(embedded_file: str, cover_video: str, key: str, encrypt: bool
         encrypt, sequential_bytes, sequential_frames, file_size, file_name)
 
     # Check max cover size
-    if (file_size * 8) > cover_size or metadata_bin > (cover_frame_width*cover_frame_count) :
+    if (file_size * 8) > cover_size or len(metadata_bin) > (cover_frame_width*cover_frame_count) :
         raise Exception('Embedded file size is too big for cover capacity')
 
     # Check encrypt
@@ -355,24 +355,7 @@ def save_video(content: List[np.array], params: tuple, path: str):
 
 
 def play_video(filename: str):
-    cap = cv2.VideoCapture(filename)
-
-    if (cap.isOpened() == False):
-        print("Error opening video stream or file")
-
-    while(cap.isOpened()):
-        # Capture frame-by-frame
-        ret, frame = cap.read()
-        if ret == True:
-
-            cv2.imshow('Frame', frame)
-            if cv2.waitKey(25) & 0xFF == ord('q'):
-                break
-
-        else:
-            break
-
-    cap.release()
+    pass
 
 
 def calculate_psnr(se: list, cover_params: list) -> float:

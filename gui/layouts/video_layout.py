@@ -35,6 +35,11 @@ class VideoEncodeWidget(QWidget):
         self.button_save_stego.setDisabled(True)
         h_frame_layout.addWidget(self.button_save_stego)
 
+        self.button_play_video = QPushButton('Play video', self)
+        self.button_play_video.clicked.connect(self._play_video)
+        self.button_play_video.setDisabled(True)
+        h_frame_layout.addWidget(self.button_play_video)
+
         h_frame_widget.setSizePolicy(
             QSizePolicy.Expanding, QSizePolicy.Minimum)
         h_frame_widget.setLayout(h_frame_layout)
@@ -152,6 +157,14 @@ class VideoEncodeWidget(QWidget):
             return
 
         save_video(self.stego_video, self.stego_video_params, stego_full_path)
+    
+    def _play_video(self):
+        self.video_full_path = open_file(
+            self, 'Choose file to be played', FILE_TYPE_FILTER['Video'])
+        if self.video_full_path is None:
+            return
+
+        play_video(self.video_full_path)
 
     def _steganify(self):
         try:
@@ -163,6 +176,7 @@ class VideoEncodeWidget(QWidget):
                 self.pixel_seq,
                 self.frame_seq
             )
+            self.button_play_video.setDisabled(False)
             self.button_save_stego.setDisabled(False)
 
             message = QMessageBox(
@@ -172,6 +186,7 @@ class VideoEncodeWidget(QWidget):
             )
             message.exec()
         except Exception as e:
+            print(e)
             message = QMessageBox(
                 QMessageBox.Critical,
                 'Steganify',
