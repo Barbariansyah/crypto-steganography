@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from os import path
 from gui.common import FILE_TYPE_FILTER, IMAGE_DIM, open_file, save_file
+from steganography import embed_to_video, embed_to_video, extract_from_video, save_video, play_video
 
 
 class VideoEncodeWidget(QWidget):
@@ -52,13 +53,6 @@ class VideoEncodeWidget(QWidget):
         self.button_steganify = QPushButton('Steganify!', self)
         self.button_steganify.clicked.connect(self._steganify)
         self.layout.addWidget(self.button_steganify)
-
-        # Add psnr info label
-        self.label_psnr = QLabel('File succesfully embedded with PSNR: ', self)
-        self.label_psnr.setSizePolicy(
-            QSizePolicy.Expanding, QSizePolicy.Minimum)
-        self.label_psnr.setAlignment(Qt.AlignCenter)
-        self.layout.addWidget(self.label_psnr)
 
         self.setLayout(self.layout)
 
@@ -156,11 +150,30 @@ class VideoEncodeWidget(QWidget):
         print(full_path)
 
     def _steganify(self):
-        # stego_file, psnr = lsb.embed_to_video(...)
-        # self.stego_video = QPixmap.loadFromData(stego_file)
-        # self.button_save_stego.setDisabled(False)
-        # self.label_psnr.setText(psnr)
-        pass
+        try:
+            self.stego_video, self.stego_video_params, psnr_value = embed_to_video(
+                self.embed_full_path,
+                self.cover_full_path,
+                self.textbox_key.text(),
+                self.encrypt,
+                self.pixel_seq,
+                self.frame_seq
+            )
+            self.button_save_stego.setDisabled(False)
+
+            message = QMessageBox(
+                QMessageBox.NoIcon,
+                'Steganify',
+                f'File succesfully embedded with PSNR {psnr_value:0.2f} dB'
+            )
+            message.exec()
+        except Exception as e:
+            message = QMessageBox(
+                QMessageBox.Critical,
+                'Steganify',
+                'Embedded file size is too big for cover capacity'
+            )
+            message.exec()
 
     def _encrypt_choice_cb(self, state: QRadioButton):
         self.encrypt = True if state.text() == 'With encryption' else False
@@ -228,7 +241,23 @@ class VideoDecodeWidget(QWidget):
         print(full_path)
 
     def _desteganify(self):
-        # payloaded_file, psnr = lsb.embed_to_video(...)
-        # self.stego_video = QPixmap.loadFromData(payloaded_file)
-        # self.button_save_stego.setDisabled(False)
-        pass
+        try:
+            self.embed_bytes, self.embed_file_name = extract_from_video(
+                self.full_path,
+                self.textbox_key.text()
+            )
+            self.button_save_extracted.setDisabled(False)
+
+            message = QMessageBox(
+                QMessageBox.NoIcon,
+                'Desteganify',
+                f'Successfully extracted {self.embed_file_name}'
+            )
+            message.exec()
+        except:
+            message = QMessageBox(
+                QMessageBox.Critical,
+                'Desteganify',
+                'Failed to extract embedded file'
+            )
+            message.exec()
