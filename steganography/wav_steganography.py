@@ -97,6 +97,7 @@ def save_audio(content: bytes, params: tuple, path: str):
         n.setparams(params)
         n.writeframes(content)
 
+
 def calculate_psnr(original_bytes: list, stego_bytes: list) -> float:
     sse = 0
     for og_byte, stego_byte in zip(original_bytes, stego_bytes):

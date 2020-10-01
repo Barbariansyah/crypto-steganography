@@ -296,12 +296,13 @@ class ImageDecodeWidget(QWidget):
                               self.embed_file_name, FILE_TYPE_FILTER['Any'])
         if full_path is None:
             return
-        
+
         save_bytes_to_file(self.embed_bytes, full_path)
 
     def _desteganify(self):
         try:
-            self.embed_bytes, self.embed_file_name = extract_from_image(self.stego_full_path, self.textbox_key.text())
+            self.embed_bytes, self.embed_file_name = extract_from_image(
+                self.stego_full_path, self.textbox_key.text())
             self.button_save_extracted.setDisabled(False)
 
             message = QMessageBox(

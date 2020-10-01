@@ -1,5 +1,6 @@
 ''' Vigenere cipher helper '''
 
+
 def generate_vigenere_standard_key(text, key):
     key = list(key)
     if len(key) == len(text):

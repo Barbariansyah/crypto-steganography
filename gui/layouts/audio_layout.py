@@ -128,7 +128,7 @@ class AudioEncodeWidget(QWidget):
             self, 'Chose save location', self.original_file_name, FILE_TYPE_FILTER['Audio'])
         if stego_full_path is None:
             return
-        
+
         save_audio(self.stego_audio, self.stego_audio_params, stego_full_path)
 
     def _steganify(self):
@@ -218,7 +218,7 @@ class AudioDecodeWidget(QWidget):
         full_path = save_file(self, 'Save extracted file',
                               self.embed_file_name, FILE_TYPE_FILTER['Any'])
         if full_path is None:
-            return        
+            return
 
         save_bytes_to_file(self.embed_bytes, full_path)
 
