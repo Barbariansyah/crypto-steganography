@@ -1,10 +1,12 @@
 import cv2
 import numpy as np
+import skvideo.io
+import math
 from typing import Tuple, List
 from steganography.util import get_file_name_from_path, random_unique_location, seed_generator, bytes_to_bit, bit_to_bytes, binary_to_int
 from steganography.cipher.vigenere import extended_vigenere_encrypter, extended_vigenere_decrypter
 from steganography.helper.video_helper import open_video_file, video_metadata_to_binary, binary_to_video_metadata
-import skvideo.io
+from copy import deepcopy
 
 
 def embed_to_video(embedded_file: str, cover_video: str, key: str, encrypt: bool, sequential_bytes: bool, sequential_frames: bool) -> Tuple[np.array, tuple]:
@@ -15,6 +17,11 @@ def embed_to_video(embedded_file: str, cover_video: str, key: str, encrypt: bool
 
     # Extract frames from cover_video
     cover_frames, cover_params = open_video_file(cover_video)
+    original_cover_frames = deepcopy(cover_frames)
+
+    # PSNR
+    se = [0, 0, 0]
+
     # Count maximum cover size
     cover_frame_width = cover_params[0]
     cover_frame_height = cover_params[1]
@@ -58,8 +65,10 @@ def embed_to_video(embedded_file: str, cover_video: str, key: str, encrypt: bool
                             break
                         for l in range(cover_frame_depth):
                             if pointer < total_length:
-                                cover_frames[i][j][k][l] = cover_frames[i][j][k][l] & ~1 | int(
+                                temp = cover_frames[i][j][k][l] & ~1 | int(
                                     embedded_message[pointer])
+                                se[l] += (cover_frames[i][j][k][l] - temp) ** 2
+                                cover_frames[i][j][k][l] = temp
                                 pointer += 1
                             else:
                                 break
@@ -77,8 +86,10 @@ def embed_to_video(embedded_file: str, cover_video: str, key: str, encrypt: bool
                             break
                         for l in range(cover_frame_depth):
                             if pointer < metadata_length:
-                                cover_frames[i][j][k][l] = cover_frames[i][j][k][l] & ~1 | int(
+                                temp = cover_frames[i][j][k][l] & ~1 | int(
                                     metadata_bin[pointer])
+                                se[l] += (cover_frames[i][j][k][l] - temp) ** 2
+                                cover_frames[i][j][k][l] = temp
                                 pointer += 1
                             else:
                                 break
@@ -97,8 +108,10 @@ def embed_to_video(embedded_file: str, cover_video: str, key: str, encrypt: bool
                 y, rem = divmod(rem_frame, cover_frame_height*3)
                 z, rem = divmod(rem, 3)
                 i = rem
-                cover_frames[x][y][z][i] = cover_frames[x][y][z][i] & ~1 | int(
+                temp = cover_frames[x][y][z][i] & ~1 | int(
                     file_bits[idx])
+                se[i] += (cover_frames[x][y][z][i] - temp) ** 2
+                cover_frames[x][y][z][i] = temp
     else:
         if sequential_bytes:
             # Embedding metadata
@@ -114,8 +127,10 @@ def embed_to_video(embedded_file: str, cover_video: str, key: str, encrypt: bool
                             break
                         for l in range(cover_frame_depth):
                             if pointer < metadata_length:
-                                cover_frames[i][j][k][l] = cover_frames[i][j][k][l] & ~1 | int(
+                                temp = cover_frames[i][j][k][l] & ~1 | int(
                                     metadata_bin[pointer])
+                                se[l] += (cover_frames[i][j][k][l] - temp) ** 2
+                                cover_frames[i][j][k][l] = temp
                                 pointer += 1
                             else:
                                 break
@@ -140,8 +155,10 @@ def embed_to_video(embedded_file: str, cover_video: str, key: str, encrypt: bool
                             break
                         for l in range(cover_frame_depth):
                             if pointer < total_length:
-                                cover_frames[loc][j][k][l] = cover_frames[loc][j][k][l] & ~1 | int(
+                                temp = cover_frames[loc][j][k][l] & ~1 | int(
                                     file_bits[pointer])
+                                se[l] += (cover_frames[i][j][k][l] - temp) ** 2
+                                cover_frames[loc][j][k][l] = temp
                                 pointer += 1
                             else:
                                 break
@@ -160,8 +177,10 @@ def embed_to_video(embedded_file: str, cover_video: str, key: str, encrypt: bool
                             break
                         for l in range(cover_frame_depth):
                             if pointer < metadata_length:
-                                cover_frames[i][j][k][l] = cover_frames[i][j][k][l] & ~1 | int(
+                                temp = cover_frames[i][j][k][l] & ~1 | int(
                                     metadata_bin[pointer])
+                                se[l] += (cover_frames[i][j][k][l] - temp) ** 2
+                                cover_frames[i][j][k][l] = temp
                                 pointer += 1
                             else:
                                 break
@@ -179,11 +198,13 @@ def embed_to_video(embedded_file: str, cover_video: str, key: str, encrypt: bool
                 y, rem = divmod(rem_frame, cover_frame_height*3)
                 z, rem = divmod(rem, 3)
                 i = rem
-                cover_frames[x][y][z][i] = cover_frames[x][y][z][i] & ~1 | int(
+                temp = cover_frames[x][y][z][i] & ~1 | int(
                     file_bits[idx])
+                se[l] += (cover_frames[x][y][z][i] - temp) ** 2
+                cover_frames[x][y][z][i] = temp
 
-    # TODO: PSNR
-    return cover_frames, cover_params, 0
+    psnr = calculate_psnr(se, cover_params)
+    return cover_frames, cover_params, psnr
 
 
 def extract_from_video(stego_video: str, key: str) -> Tuple[bytes, str]:
@@ -251,7 +272,8 @@ def extract_from_video(stego_video: str, key: str) -> Tuple[bytes, str]:
                             break
                         for l in range(cover_frame_depth):
                             if pointer < total_length:
-                                file_bits += str(cover_frames[loc][j][k][l] & 1)
+                                file_bits += str(cover_frames[loc]
+                                                 [j][k][l] & 1)
                                 pointer += 1
                             else:
                                 break
@@ -316,3 +338,18 @@ def play_video(filename: str):
             break
 
     cap.release()
+
+
+def calculate_psnr(se: list, cover_params: list) -> float:
+    cover_frame_width = cover_params[0]
+    cover_frame_height = cover_params[1]
+    cover_frame_count = cover_params[3]
+
+    r_se, g_se, b_se = se[0], se[1], se[2]
+
+    r_mse = r_se / (cover_frame_width * cover_frame_height * cover_frame_count)
+    g_mse = g_se / (cover_frame_width * cover_frame_height * cover_frame_count)
+    b_mse = b_se / (cover_frame_width * cover_frame_height * cover_frame_count)
+    mse = (r_mse + g_mse + b_mse) / 3
+    psnr = 10 * math.log(((255 ** 2) / mse), 10)
+    return psnr
