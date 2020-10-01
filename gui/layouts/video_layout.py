@@ -133,6 +133,7 @@ class VideoEncodeWidget(QWidget):
             return
 
         _, file_name = path.split(full_path)
+        self.original_file_name = file_name
         self.button_load_cover.setText(f'Chosen video: {file_name}')
 
     def _open_embedded_file(self):
@@ -146,8 +147,11 @@ class VideoEncodeWidget(QWidget):
 
     def _save_stego_video(self):
         full_path = save_file(self, 'Chose save location',
-                              '', FILE_TYPE_FILTER['Image'])
-        print(full_path)
+                              self.original_file_name, FILE_TYPE_FILTER['Video'])
+        if full_path is None:
+            return
+
+        save_video(self.stego_video, self.stego_video_params, full_path)
 
     def _steganify(self):
         try:
