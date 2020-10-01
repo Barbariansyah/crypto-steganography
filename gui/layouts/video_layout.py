@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from os import path
 from gui.common import FILE_TYPE_FILTER, IMAGE_DIM, open_file, save_file
-from steganography import embed_to_video, embed_to_video, extract_from_video, save_video, play_video
+from steganography import embed_to_video, embed_to_video, extract_from_video, save_video, play_video, save_bytes_to_file
 
 
 class VideoEncodeWidget(QWidget):
@@ -127,31 +127,31 @@ class VideoEncodeWidget(QWidget):
         return pixel_seq_radio_pane
 
     def _open_cover_video(self):
-        full_path = open_file(self, 'Choose cover video',
-                              FILE_TYPE_FILTER['Video'])
-        if full_path is None:
+        self.cover_full_path = open_file(self, 'Choose cover video',
+                                         FILE_TYPE_FILTER['Video'])
+        if self.cover_full_path is None:
             return
 
-        _, file_name = path.split(full_path)
+        _, file_name = path.split(self.cover_full_path)
         self.original_file_name = file_name
         self.button_load_cover.setText(f'Chosen video: {file_name}')
 
     def _open_embedded_file(self):
-        full_path = open_file(
+        self.embed_full_path = open_file(
             self, 'Choose file to be embedded', FILE_TYPE_FILTER['Any'])
-        if full_path is None:
+        if self.embed_full_path is None:
             return
 
-        _, file_name = path.split(full_path)
+        _, file_name = path.split(self.embed_full_path)
         self.button_load_embedded.setText(f'Chosen file: {file_name}')
 
     def _save_stego_video(self):
-        full_path = save_file(self, 'Chose save location',
-                              self.original_file_name, FILE_TYPE_FILTER['Video'])
-        if full_path is None:
+        stego_full_path = save_file(self, 'Chose save location',
+                                    self.original_file_name, FILE_TYPE_FILTER['Video'])
+        if stego_full_path is None:
             return
 
-        save_video(self.stego_video, self.stego_video_params, full_path)
+        save_video(self.stego_video, self.stego_video_params, stego_full_path)
 
     def _steganify(self):
         try:
@@ -231,23 +231,26 @@ class VideoDecodeWidget(QWidget):
         self.setLayout(self.layout)
 
     def _load_stego_video(self):
-        full_path = open_file(self, 'Choose stego video',
-                              FILE_TYPE_FILTER['Video'])
-        if full_path is None:
+        self.stego_full_path = open_file(self, 'Choose stego video',
+                                         FILE_TYPE_FILTER['Video'])
+        if self.stego_full_path is None:
             return
 
-        _, file_name = path.split(full_path)
+        _, file_name = path.split(self.stego_full_path)
         self.button_load_stego.setText(f'Chosen video: {file_name}')
 
     def _save_extracted_file(self):
         full_path = save_file(self, 'Save extracted file',
-                              '', FILE_TYPE_FILTER['Any'])
-        print(full_path)
+                              self.embed_file_name, FILE_TYPE_FILTER['Any'])
+        if full_path is None:
+            return
+
+        save_bytes_to_file(self.embed_bytes, full_path)
 
     def _desteganify(self):
         try:
             self.embed_bytes, self.embed_file_name = extract_from_video(
-                self.full_path,
+                self.stego_full_path,
                 self.textbox_key.text()
             )
             self.button_save_extracted.setDisabled(False)
@@ -258,7 +261,7 @@ class VideoDecodeWidget(QWidget):
                 f'Successfully extracted {self.embed_file_name}'
             )
             message.exec()
-        except:
+        except Exception as e:
             message = QMessageBox(
                 QMessageBox.Critical,
                 'Desteganify',

@@ -29,7 +29,7 @@ def embed_to_video(embedded_file: str, cover_video: str, key: str, encrypt: bool
     cover_frame_count = cover_params[3]
     cover_frame_depth = 3
     cover_size = cover_frame_width * cover_frame_height * \
-        cover_frame_depth * cover_frame_count
+        cover_frame_depth * (cover_frame_count-1)
 
     # Create metadata
     file_name = get_file_name_from_path(embedded_file)
@@ -37,8 +37,7 @@ def embed_to_video(embedded_file: str, cover_video: str, key: str, encrypt: bool
         encrypt, sequential_bytes, sequential_frames, file_size, file_name)
 
     # Check max cover size
-    embed_size = file_size * 8 + len(metadata_bin)
-    if embed_size > cover_size:
+    if (file_size * 8) > cover_size or metadata_bin > (cover_frame_width*cover_frame_count) :
         raise Exception('Embedded file size is too big for cover capacity')
 
     # Check encrypt
@@ -53,8 +52,30 @@ def embed_to_video(embedded_file: str, cover_video: str, key: str, encrypt: bool
     pointer = 0
     if sequential_frames:
         if sequential_bytes:
-            total_length = len(embedded_message)
+            # Embedding metadata
+            metadata_length = len(metadata_bin)
             for i in range(cover_frame_count):
+                if pointer >= metadata_length:
+                    break
+                for j in range(cover_frame_width):
+                    if pointer >= metadata_length:
+                        break
+                    for k in range(cover_frame_height):
+                        if pointer >= metadata_length:
+                            break
+                        for l in range(cover_frame_depth):
+                            if pointer < metadata_length:
+                                temp = cover_frames[i][j][k][l] & ~1 | int(
+                                    metadata_bin[pointer])
+                                se[l] += (cover_frames[i][j][k][l] - temp) ** 2
+                                cover_frames[i][j][k][l] = temp
+                                pointer += 1
+                            else:
+                                break
+
+            pointer = 0
+            total_length = len(file_bits)
+            for i in range(1, cover_frame_count):
                 if pointer >= total_length:
                     break
                 for j in range(cover_frame_width):
@@ -66,7 +87,7 @@ def embed_to_video(embedded_file: str, cover_video: str, key: str, encrypt: bool
                         for l in range(cover_frame_depth):
                             if pointer < total_length:
                                 temp = cover_frames[i][j][k][l] & ~1 | int(
-                                    embedded_message[pointer])
+                                    file_bits[pointer])
                                 se[l] += (cover_frames[i][j][k][l] - temp) ** 2
                                 cover_frames[i][j][k][l] = temp
                                 pointer += 1
@@ -231,9 +252,23 @@ def extract_from_video(stego_video: str, key: str) -> Tuple[bytes, str]:
     file_bits = ''
     if sequential_frames:
         if sequential_bytes:
-            for idx in range(file_size_bit):
-                loc = size + idx
-                file_bits += str(lsbs[loc])
+            pointer = 0
+            total_length = file_size_bit
+            for i in range(1, cover_frame_count):
+                if pointer >= total_length:
+                    break
+                for j in range(cover_frame_width):
+                    if pointer >= total_length:
+                        break
+                    for k in range(cover_frame_height):
+                        if pointer >= total_length:
+                            break
+                        for l in range(cover_frame_depth):
+                            if pointer < total_length:
+                                file_bits += str(cover_frames[i][j][k][l] & 1)
+                                pointer += 1
+                            else:
+                                break
         else:
             # Max capacity frame
             max_capacity_frame = cover_frame_height * cover_frame_width * cover_frame_depth
