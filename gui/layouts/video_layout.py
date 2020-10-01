@@ -37,7 +37,6 @@ class VideoEncodeWidget(QWidget):
 
         self.button_play_video = QPushButton('Play video', self)
         self.button_play_video.clicked.connect(self._play_video)
-        self.button_play_video.setDisabled(True)
         h_frame_layout.addWidget(self.button_play_video)
 
         h_frame_widget.setSizePolicy(
@@ -157,7 +156,7 @@ class VideoEncodeWidget(QWidget):
             return
 
         save_video(self.stego_video, self.stego_video_params, stego_full_path)
-    
+
     def _play_video(self):
         self.video_full_path = open_file(
             self, 'Choose file to be played', FILE_TYPE_FILTER['Video'])
@@ -223,6 +222,10 @@ class VideoDecodeWidget(QWidget):
         self.button_load_stego.clicked.connect(self._load_stego_video)
         h_frame_layout.addWidget(self.button_load_stego)
 
+        self.button_play_video = QPushButton('Play video', self)
+        self.button_play_video.clicked.connect(self._play_video)
+        h_frame_layout.addWidget(self.button_play_video)
+
         self.button_save_extracted = QPushButton('Save extracted file', self)
         self.button_save_extracted.clicked.connect(self._save_extracted_file)
         self.button_save_extracted.setDisabled(True)
@@ -253,6 +256,14 @@ class VideoDecodeWidget(QWidget):
 
         _, file_name = path.split(self.stego_full_path)
         self.button_load_stego.setText(f'Chosen video: {file_name}')
+
+    def _play_video(self):
+        self.video_full_path = open_file(
+            self, 'Choose file to be played', FILE_TYPE_FILTER['Video'])
+        if self.video_full_path is None:
+            return
+
+        play_video(self.video_full_path)
 
     def _save_extracted_file(self):
         full_path = save_file(self, 'Save extracted file',

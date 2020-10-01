@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import skvideo.io
 import math
+import subprocess
 from typing import Tuple, List
 from steganography.util import get_file_name_from_path, random_unique_location, seed_generator, bytes_to_bit, bit_to_bytes, binary_to_int
 from steganography.cipher.vigenere import extended_vigenere_encrypter, extended_vigenere_decrypter
@@ -37,7 +38,7 @@ def embed_to_video(embedded_file: str, cover_video: str, key: str, encrypt: bool
         encrypt, sequential_bytes, sequential_frames, file_size, file_name)
 
     # Check max cover size
-    if (file_size * 8) > cover_size or len(metadata_bin) > (cover_frame_width*cover_frame_count) :
+    if (file_size * 8) > cover_size or len(metadata_bin) > (cover_frame_width*cover_frame_count):
         raise Exception('Embedded file size is too big for cover capacity')
 
     # Check encrypt
@@ -355,7 +356,13 @@ def save_video(content: List[np.array], params: tuple, path: str):
 
 
 def play_video(filename: str):
-    pass
+    try:
+        command = ['vlc', f'file://{filename}']
+        subprocess.run(command)
+    except FileNotFoundError:
+        raise Exception('Cannot play video, VLC is required')
+    except:
+        raise Exception('Cannot play video')
 
 
 def calculate_psnr(se: list, cover_params: list) -> float:

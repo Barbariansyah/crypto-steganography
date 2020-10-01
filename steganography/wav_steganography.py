@@ -101,7 +101,8 @@ def save_audio(content: bytes, params: tuple, path: str):
 
 def play_audio(path: str):
     try:
-        subprocess.run(f'vlc file://{path}')
+        command = ['vlc', f'file://{path}']
+        subprocess.run(command)
     except FileNotFoundError:
         raise Exception('Cannot play audio, VLC is required')
     except:

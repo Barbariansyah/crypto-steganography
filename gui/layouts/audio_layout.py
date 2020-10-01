@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from os import path
 from gui.common import FILE_TYPE_FILTER, IMAGE_DIM, open_file, save_file
-from steganography import embed_to_audio, extract_from_audio, save_audio, save_bytes_to_file
+from steganography import embed_to_audio, extract_from_audio, save_audio, save_bytes_to_file, play_audio
 
 
 class AudioEncodeWidget(QWidget):
@@ -33,6 +33,10 @@ class AudioEncodeWidget(QWidget):
         self.button_save_stego.clicked.connect(self._save_stego_audio)
         self.button_save_stego.setDisabled(True)
         h_frame_layout.addWidget(self.button_save_stego)
+
+        self.button_play_audio = QPushButton('Play audio', self)
+        self.button_play_audio.clicked.connect(self._play_audio)
+        h_frame_layout.addWidget(self.button_play_audio)
 
         h_frame_widget.setSizePolicy(
             QSizePolicy.Expanding, QSizePolicy.Minimum)
@@ -131,6 +135,14 @@ class AudioEncodeWidget(QWidget):
 
         save_audio(self.stego_audio, self.stego_audio_params, stego_full_path)
 
+    def _play_audio(self):
+        self.audio_full_path = open_file(
+            self, 'Choose file to be played', FILE_TYPE_FILTER['Audio'])
+        if self.audio_full_path is None:
+            return
+
+        play_audio(self.audio_full_path)
+
     def _steganify(self):
         try:
             self.stego_audio, self.stego_audio_params, psnr_value = embed_to_audio(
@@ -187,6 +199,10 @@ class AudioDecodeWidget(QWidget):
         self.button_save_extracted.setDisabled(True)
         h_frame_layout.addWidget(self.button_save_extracted)
 
+        self.button_play_audio = QPushButton('Play audio', self)
+        self.button_play_audio.clicked.connect(self._play_audio)
+        h_frame_layout.addWidget(self.button_play_audio)
+
         h_frame_widget.setSizePolicy(
             QSizePolicy.Expanding, QSizePolicy.Minimum)
         h_frame_widget.setLayout(h_frame_layout)
@@ -221,6 +237,14 @@ class AudioDecodeWidget(QWidget):
             return
 
         save_bytes_to_file(self.embed_bytes, full_path)
+
+    def _play_audio(self):
+        self.audio_full_path = open_file(
+            self, 'Choose file to be played', FILE_TYPE_FILTER['Audio'])
+        if self.audio_full_path is None:
+            return
+
+        play_audio(self.audio_full_path)
 
     def _desteganify(self):
         try:
