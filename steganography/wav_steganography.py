@@ -1,5 +1,6 @@
 import wave
 import math
+import subprocess
 from typing import Tuple
 from copy import deepcopy
 from steganography.helper import wav_helper
@@ -96,6 +97,15 @@ def save_audio(content: bytes, params: tuple, path: str):
     with wave.open(path, 'wb') as n:
         n.setparams(params)
         n.writeframes(content)
+
+
+def play_audio(path: str):
+    try:
+        subprocess.run(f'vlc file://{path}')
+    except FileNotFoundError:
+        raise Exception('Cannot play audio, VLC is required')
+    except:
+        raise Exception('Cannot play audio')
 
 
 def calculate_psnr(original_bytes: list, stego_bytes: list) -> float:
