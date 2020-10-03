@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from os import path
 from gui.common import FILE_TYPE_FILTER, IMAGE_DIM, open_file, save_file
-from steganography import embed_to_video, embed_to_video, extract_from_video, save_video, play_video, save_bytes_to_file
+from steganography import embed_to_video, extract_from_video, save_video, play_video, save_bytes_to_file
 
 
 class VideoEncodeWidget(QWidget):
@@ -155,7 +155,7 @@ class VideoEncodeWidget(QWidget):
         if stego_full_path is None:
             return
 
-        save_video(self.stego_video, self.stego_video_params, stego_full_path)
+        save_video(self.stego_video, self.stego_video_params, stego_full_path, self.video_has_audio)
 
     def _play_video(self):
         self.video_full_path = open_file(
@@ -167,7 +167,7 @@ class VideoEncodeWidget(QWidget):
 
     def _steganify(self):
         try:
-            self.stego_video, self.stego_video_params, psnr_value = embed_to_video(
+            self.stego_video, self.stego_video_params, psnr_value, self.video_has_audio = embed_to_video(
                 self.embed_full_path,
                 self.cover_full_path,
                 self.textbox_key.text(),

@@ -16,6 +16,26 @@ def embed_to_video(embedded_file: str, cover_video: str, key: str, encrypt: bool
         file_bytes = f.read()
         file_size = len(file_bytes)
 
+    # Extract audio from video
+    command = ['ffprobe',
+               '-i', cover_video,
+               '-show_streams',
+               '-select_streams', 'a',
+               '-loglevel', 'error'
+               ]
+    cmd_out, cmd_error = subprocess.Popen(
+        command, stdout=subprocess.PIPE).communicate()
+
+    video_has_audio = False
+    if len(cmd_out) != 0:
+        cover_audio_from_video_path = 'steganography/sample_audio_from_video/sample_audio.aac'
+        command = ['ffmpeg',
+                   '-i', cover_video,
+                   '-y',
+                   cover_audio_from_video_path]
+        video_has_audio = True
+        retcode = subprocess.call(command)
+
     # Extract frames from cover_video
     cover_frames, cover_params = open_video_file(cover_video)
     original_cover_frames = deepcopy(cover_frames)
@@ -226,7 +246,7 @@ def embed_to_video(embedded_file: str, cover_video: str, key: str, encrypt: bool
                 cover_frames[x][y][z][i] = temp
 
     psnr = calculate_psnr(se, cover_params)
-    return cover_frames, cover_params, psnr
+    return cover_frames, cover_params, psnr, video_has_audio
 
 
 def extract_from_video(stego_video: str, key: str) -> Tuple[bytes, str]:
@@ -338,10 +358,14 @@ def extract_from_video(stego_video: str, key: str) -> Tuple[bytes, str]:
     return file_bytes, file_name
 
 
-def save_video(content: List[np.array], params: tuple, path: str):
+def save_video(content: List[np.array], params: tuple, path: str, has_audio: bool):
     cover_frame_width = params[0]
     cover_frame_height = params[1]
     cover_frame_fps = params[2]
+    fix_path = path
+
+    if has_audio:
+        path = 'steganography/sample_video/temp_video.avi'
 
     writer = skvideo.io.FFmpegWriter(path, outputdict={
         '-vcodec': 'ffv1',  # use the h.264 codec
@@ -353,6 +377,16 @@ def save_video(content: List[np.array], params: tuple, path: str):
         writer.writeFrame(frame[:, :, ::-1])
 
     writer.close()
+
+    if has_audio:
+        command2 = ['ffmpeg',
+                    '-i', path,
+                    '-i', 'steganography/sample_audio_from_video/sample_audio.aac',
+                    '-y',
+                    '-vcodec', 'copy',
+                    '-acodec', 'copy',
+                    fix_path]
+        retcode2 = subprocess.call(command2)
 
 
 def play_video(filename: str):
