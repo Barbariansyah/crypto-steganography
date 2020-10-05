@@ -5,6 +5,8 @@ Steganography encoder and decoder, made for IF4020 class project.
 ## Requirements
 
 * Python 3.6+
+* ffmeg
+* vlc (for playback)
 
 ## How To Run
 ```bash
